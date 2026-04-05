@@ -1,0 +1,197 @@
+# configs/finetune.yaml
+# Config for fine-tuning transcriptomic foundation models.
+#
+# Usage (from repo root):
+#   python -m train.train_finetune \
+#     --config_path configs/finetune.yaml \
+#     --dataset TCGA --fm_name BulkRNABert \
+#     --seed 37 --split_idx 0 --loss_name CIndex
+
+# ---- dataset-specific paths (same as all_models.yaml) ----
+data_paths:
+  TCGA:      "./data/RNA_embeddings/TCGA_processed_cleaned.pkl"
+  CPTAC:     "./data/RNA_embeddings/CPTAC_processed.pkl"
+  CALGB:     "./data/RNA_embeddings/CALGB_processed.pkl"
+  Hartwig:   "./data/RNA_embeddings/Hartwig_processed.pkl"
+  ICGC:      "./data/RNA_embeddings/ICGC_processed.pkl"
+  TARGET_AML: "./data/RNA_embeddings/TARGET_AML_processed.pkl"
+
+split_folders:
+  TCGA:      "./splits/TCGA_cleaned"
+  CPTAC:     "./splits/CPTAC"
+  CALGB:     "./splits/CALGB"
+  Hartwig:   "./splits/Hartwig"
+  ICGC:      "./splits/ICGC"
+  TARGET_AML: "./splits/TARGET_AML"
+
+# ---- shared data settings ----
+data:
+  batch_size: 32          # A6000 48GB: attention (1,8,19062,19062) ≈ 5.8 GB; B>1 OOMs
+  num_workers: 4
+  endpoint: "PFS"
+
+# ---- trainer ----
+# accumulate_grad_batches=128 → effective batch size = 1 × 128 = 128
+trainer:
+  max_epochs: 100
+  accelerator: gpu
+  devices: 1
+  precision: "bf16"
+  gradient_clip_val: 1.5
+  accumulate_grad_batches: 4
+  log_every_n_steps: 5
+
+callbacks:
+  patience: 20
+  monitor: "val/loss"
+
+# ---- FM-specific configs ----
+# Add a new section here when adding a new FM to FM_REGISTRY.
+fm_configs:
+
+  BulkRNABert:
+    hf_model_id: "InstaDeepAI/BulkRNABert"
+    embed_dim: 256               # BulkRNABert transformer hidden size
+    lora_r: 8
+    lora_alpha: 16
+    lora_dropout: 0.05
+    target_modules:              # nn.Linear names inside MultiHeadAttention
+      - "w_q"
+      - "w_k"
+      - "w_v"
+    use_gradient_checkpointing: false  # not needed: frozen layers use torch.no_grad()
+    lr: 5e-4
+    weight_decay: 5e-6
+    penalty_weight: 0.0
+    tokens_paths:
+      TCGA:      "./data/tokens/BulkRNABert/TCGA_tokens.pkl"
+      CPTAC:     "./data/tokens/BulkRNABert/CPTAC_tokens.pkl"
+      CALGB:     "./data/tokens/BulkRNABert/CALGB_tokens.pkl"
+      Hartwig:   "./data/tokens/BulkRNABert/Hartwig_tokens.pkl"
+      ICGC:      "./data/tokens/BulkRNABert/ICGC_tokens.pkl"
+      TARGET_AML: "./data/tokens/BulkRNABert/TARGET_AML_tokens.pkl"
+
+  scGPT:
+    hf_model_id: "./data/scGPT/scGPT_human"  # local model dir (not HuggingFace)
+    embed_dim: 512               # scGPT transformer hidden size
+    lora_r: 8
+    lora_alpha: 16
+    lora_dropout: 0.05
+    target_modules:              # nn.Linear inside each TransformerEncoderLayer
+      - "out_proj"               # self-attention output projection
+      - "linear1"                # FFN first layer
+      - "linear2"                # FFN second layer
+    use_gradient_checkpointing: false
+    lr: 1e-4
+    weight_decay: 1e-5
+    penalty_weight: 0.0
+    # scGPT-specific tokenization settings (used by train_finetune.py)
+    pad_token: "<pad>"
+    pad_value: -2
+    max_length: 1200
+    n_bins: 51
+    tokens_paths:
+      TCGA:      "./data/tokens/scGPT/TCGA_tokens.pkl"
+      CPTAC:     "./data/tokens/scGPT/CPTAC_tokens.pkl"
+      CALGB:     "./data/tokens/scGPT/CALGB_tokens.pkl"
+      Hartwig:   "./data/tokens/scGPT/Hartwig_tokens.pkl"
+      ICGC:      "./data/tokens/scGPT/ICGC_tokens.pkl"
+      TARGET_AML: "./data/tokens/scGPT/TARGET_AML_tokens.pkl"
+
+  COMPASS:
+    hf_model_id: "./data/COMPASS/pretrainer.pt"  # local pretrainer.pt (not HuggingFace)
+    embed_dim: 44                # COMPASS cellpathway-level projection dim
+    ft_mode: "PFT"               # FFT=full, PFT=freeze inputencoder, LFT=head only
+    lr: 1e-4
+    weight_decay: 1e-5
+    penalty_weight: 0.0
+    use_gradient_checkpointing: false
+    # lora_r/lora_alpha/target_modules not used by COMPASS (no LoRA)
+    tokens_paths:
+      TCGA:      "./data/tokens/COMPASS/TCGA_tokens.pkl"
+      CPTAC:     "./data/tokens/COMPASS/CPTAC_tokens.pkl"
+      CALGB:     "./data/tokens/COMPASS/CALGB_tokens.pkl"
+      Hartwig:   "./data/tokens/COMPASS/Hartwig_tokens.pkl"
+      ICGC:      "./data/tokens/COMPASS/ICGC_tokens.pkl"
+      TARGET_AML: "./data/tokens/COMPASS/TARGET_AML_tokens.pkl"
+
+  CancerFoundation:
+    hf_model_id: ""             # unused — model loaded from CANCER_FOUNDATION_DIR in model class
+    embed_dim: 256               # CancerGPT hidden dim
+    lora_r: 8
+    lora_alpha: 16
+    lora_dropout: 0.05
+    target_modules:              # nn.Linear names inside each TransformerEncoderLayer
+      - "out_proj"               # self-attention output projection
+      - "linear1"                # FFN first layer
+      - "linear2"                # FFN second layer
+    use_gradient_checkpointing: false
+    lr: 1e-4
+    weight_decay: 1e-5
+    penalty_weight: 0.0
+    pad_token: "<pad>"
+    pad_value: -2
+    max_length: 1200
+    n_bins: 51
+    tokens_paths:
+      TCGA:      "./data/tokens/CancerFoundation/TCGA_tokens.pkl"
+      CPTAC:     "./data/tokens/CancerFoundation/CPTAC_tokens.pkl"
+      CALGB:     "./data/tokens/CancerFoundation/CALGB_tokens.pkl"
+      Hartwig:   "./data/tokens/CancerFoundation/Hartwig_tokens.pkl"
+      ICGC:      "./data/tokens/CancerFoundation/ICGC_tokens.pkl"
+      TARGET_AML: "./data/tokens/CancerFoundation/TARGET_AML_tokens.pkl"
+
+  BulkFormer:
+    hf_model_id: ""             # unused — checkpoint loaded from BULKFORMER_DIR in model class
+    embed_dim: 640               # BulkFormer hidden dim
+    lora_r: 8
+    lora_alpha: 16
+    lora_dropout: 0.05
+    target_modules:              # Performer attention projections in each GBFormer layer
+      - "to_q"
+      - "to_k"
+      - "to_v"
+      - "to_out"
+    use_gradient_checkpointing: true   # recompute GBFormer activations in backward — required for 20010-gene Performer
+    lr: 1e-5                           # lower than default — Performer gradient flow is unstable at 1e-4
+    weight_decay: 1e-5
+    penalty_weight: 0.0
+    gradient_clip_val: 0.5             # tighter clip — FAVOR+ exp() kernel can produce large gradients
+    # Performer FAVOR+ kernel with 20010 genes is memory-heavy; use smaller
+    # batches and more accumulation steps to keep effective batch size = 128.
+    batch_size: 6
+    accumulate_grad_batches: 22
+    tokens_paths:
+      TCGA:      "./data/tokens/BulkFormer/TCGA_tokens.pkl"
+      CPTAC:     "./data/tokens/BulkFormer/CPTAC_tokens.pkl"
+      CALGB:     "./data/tokens/BulkFormer/CALGB_tokens.pkl"
+      Hartwig:   "./data/tokens/BulkFormer/Hartwig_tokens.pkl"
+      ICGC:      "./data/tokens/BulkFormer/ICGC_tokens.pkl"
+      TARGET_AML: "./data/tokens/BulkFormer/TARGET_AML_tokens.pkl"
+
+  STATE:
+    hf_model_id: ""             # unused — checkpoint loaded from STATE_MODEL_DIR in model class
+    embed_dim: 2048              # STATE-SE output_dim (L2-normalised CLS embedding)
+    lora_r: 8
+    lora_alpha: 16
+    lora_dropout: 0.05
+    target_modules:              # nn.Linear names in each FlashTransformerEncoderLayer
+      - "qkv_proj"               # combined Q/K/V projection (2048 → 6144)
+      - "out_proj"               # attention output projection (2048 → 2048)
+      - "linear1"                # FFN first layer (2048 → 2048)
+      - "linear2"                # FFN second layer (2048 → 2048)
+    use_gradient_checkpointing: false  # set true to trade compute for memory on smaller GPUs
+    lora_n_layers: -1     # -1 = all 16 layers; set to e.g. 4 to restrict to last 4 layers only
+    lr: 1e-5              # 1e-4 overshoots — STATE pre-training used 1e-5 with cosine decay
+    weight_decay: 1e-5
+    penalty_weight: 0.0
+    # seq_len=2048 with Flash SDPA is memory-efficient; B=8 fits on a 48 GB GPU
+    batch_size: 8
+    accumulate_grad_batches: 16  # effective batch size = 8 × 16 = 128
+    tokens_paths:
+      TCGA:      "./data/tokens/STATE/TCGA_tokens.pkl"
+      CPTAC:     "./data/tokens/STATE/CPTAC_tokens.pkl"
+      CALGB:     "./data/tokens/STATE/CALGB_tokens.pkl"
+      Hartwig:   "./data/tokens/STATE/Hartwig_tokens.pkl"
+      ICGC:      "./data/tokens/STATE/ICGC_tokens.pkl"
+      TARGET_AML: "./data/tokens/STATE/TARGET_AML_tokens.pkl"

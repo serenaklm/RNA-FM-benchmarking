@@ -1,0 +1,47 @@
+{
+  "CPTAC": {
+    "demographic.gender": {
+      "male": 666,
+      "female": 556
+    },
+    "diagnoses.ajcc_pathologic_stage": {
+      "Stage I": 294,
+      "NaN/null": 178,
+      "Stage III": 163,
+      "Stage IIB": 107,
+      "Stage IB": 107,
+      "Stage II": 73,
+      "Stage IIIA": 63,
+      "Stage IIA": 62,
+      "Stage IA": 58,
+      "Stage IV": 48,
+      "Stage IVA": 37,
+      "Stage IA3": 8,
+      "Stage IVB": 8,
+      "Stage IIIC1": 5,
+      "Stage IIIB": 4,
+      "Stage IA2": 3,
+      "Stage IA1": 2,
+      "Stage IIIC2": 1,
+      "Stage IIIC": 1
+    },
+    "organ": {
+      "Lung, NOS": 310,
+      "Kidney, NOS": 244,
+      "Uterus, NOS": 227,
+      "Brain, NOS": 176,
+      "Pancreas, NOS": 158,
+      "Larynx, NOS": 48,
+      "Tongue, NOS": 20,
+      "Floor of mouth, NOS": 18,
+      "Lip, NOS": 4,
+      "Oropharynx, NOS": 4,
+      "Overlapping lesion of lip, oral cavity and pharynx": 4,
+      "Gum, NOS": 3,
+      "Cheek mucosa": 2,
+      "Head, face or neck, NOS": 2,
+      "Tonsil, NOS": 1,
+      "Base of tongue, NOS": 1
+    }
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "BulkFormer_Linear_CIndex": {
+    "lr": 0.0008990532754215388,
+    "weight_decay": 1.8775859439104803e-06,
+    "penalty_weight": 0.00013320108552104644
+  },
+  "BulkFormer_Linear_Cox": {
+    "lr": 0.0006093076752012311,
+    "weight_decay": 3.0674058264503892e-06,
+    "penalty_weight": 0.00022653343219609812
+  },
+  "BulkFormer_ResidualMLP_CIndex": {
+    "lr": 0.00021794503921924828,
+    "weight_decay": 1.333806152866893e-06,
+    "penalty_weight": 0.00012690444213405227,
+    "dropout_rate": 0.16014490652470093
+  },
+  "BulkFormer_ResidualMLP_Cox": {
+    "lr": 0.0001337524072572896,
+    "weight_decay": 3.019898128965749e-06,
+    "penalty_weight": 0.00013689997200280564,
+    "dropout_rate": 0.1892373749513615
+  },
+  "BulkRNABert_Linear_CIndex": {
+    "lr": 0.000956414406955556,
+    "weight_decay": 1.3263026477390764e-06,
+    "penalty_weight": 0.00010810300753496452
+  },
+  "BulkRNABert_Linear_Cox": {
+    "lr": 0.0009798611740826967,
+    "weight_decay": 2.0376168129276173e-06,
+    "penalty_weight": 0.0001267485574420052
+  },
+  "BulkRNABert_ResidualMLP_CIndex": {
+    "lr": 0.000445058885480285,
+    "weight_decay": 3.031031619797807e-06,
+    "penalty_weight": 0.00012660378811300932,
+    "dropout_rate": 0.22597347518121955
+  },
+  "BulkRNABert_ResidualMLP_Cox": {
+    "lr": 0.00023408977804905773,
+    "weight_decay": 7.195769139532794e-06,
+    "penalty_weight": 0.00016166703944707868,
+    "dropout_rate": 0.23777558743723612
+  },
+  "COMPASS_Linear_CIndex": {
+    "lr": 0.0008905381246943379,
+    "weight_decay": 2.042547576466623e-06,
+    "penalty_weight": 0.00010673164563814598
+  },
+  "COMPASS_Linear_Cox": {
+    "lr": 0.0009677782311540795,
+    "weight_decay": 1.0892366794312449e-06,
+    "penalty_weight": 0.0001045819422082442
+  },
+  "COMPASS_ResidualMLP_CIndex": {
+    "lr": 0.00031373573336934484,
+    "weight_decay": 1.2754353258109312e-06,
+    "penalty_weight": 0.00014056015797252034,
+    "dropout_rate": 0.12376988068787495
+  },
+  "COMPASS_ResidualMLP_Cox": {
+    "lr": 0.00038574583618448645,
+    "weight_decay": 6.631425535281877e-06,
+    "penalty_weight": 0.00010564981398809282,
+    "dropout_rate": 0.3342250438681976
+  },
+  "CancerFoundation_Linear_CIndex": {
+    "lr": 0.0008952063659201022,
+    "weight_decay": 2.1278962591409582e-06,
+    "penalty_weight": 0.00010237046783926578
+  },
+  "CancerFoundation_Linear_Cox": {
+    "lr": 0.0007584132725773061,
+    "weight_decay": 1.706913011857337e-06,
+    "penalty_weight": 0.00010246830776321748
+  },
+  "CancerFoundation_ResidualMLP_CIndex": {
+    "lr": 9.83949025627881e-05,
+    "weight_decay": 2.5216555221852712e-06,
+    "penalty_weight": 0.00010074633363463561,
+    "dropout_rate": 0.3161774334874626
+  },
+  "CancerFoundation_ResidualMLP_Cox": {
+    "lr": 0.0005027438580648667,
+    "weight_decay": 1.4423336584313954e-06,
+    "penalty_weight": 0.00010301440983240522,
+    "dropout_rate": 0.35695657708752015
+  },
+  "PCA_50_Linear_CIndex": {
+    "lr": 0.0006932011145811535,
+    "weight_decay": 5.19123930633853e-06,
+    "penalty_weight": 0.002409901832235385
+  },
+  "PCA_50_Linear_Cox": {
+    "lr": 0.0008899645337557232,
+    "weight_decay": 6.386830895451506e-07,
+    "penalty_weight": 0.0010588495391316598
+  },
+  "PCA_50_ResidualMLP_CIndex": {
+    "lr": 0.0003984620079588872,
+    "weight_decay": 3.8952199989121184e-06,
+    "penalty_weight": 0.0003559355063150725,
+    "dropout_rate": 0.1741710484191184
+  },
+  "PCA_50_ResidualMLP_Cox": {
+    "lr": 0.00043733194243275646,
+    "weight_decay": 1.227055663920831e-06,
+    "penalty_weight": 0.0007054146908899732,
+    "dropout_rate": 0.21178159397405993
+  },
+  "RNA_seq_1250_Linear_CIndex": {
+    "lr": 0.00025184283600215233,
+    "weight_decay": 1.6615163037755633e-06,
+    "penalty_weight": 0.004398026361710358
+  },
+  "RNA_seq_1250_Linear_Cox": {
+    "lr": 0.0001288813882580379,
+    "weight_decay": 6.303264851571982e-07,
+    "penalty_weight": 0.009445311215074798
+  },
+  "RNA_seq_1250_ResidualMLP_CIndex": {
+    "lr": 2.576743231606214e-05,
+    "weight_decay": 3.2100918723143273e-06,
+    "penalty_weight": 0.0002182357309590472,
+    "dropout_rate": 0.28990290159011306
+  },
+  "RNA_seq_1250_ResidualMLP_Cox": {
+    "lr": 9.176713338859302e-05,
+    "weight_decay": 2.606879114234044e-06,
+    "penalty_weight": 0.0003132385498783061,
+    "dropout_rate": 0.3560515831188229
+  },
+  "RNA_seq_17490_Linear_CIndex": {
+    "lr": 5.2014423510444806e-05,
+    "weight_decay": 2.073742033281364e-06,
+    "penalty_weight": 0.002624976439083276
+  },
+  "RNA_seq_17490_Linear_Cox": {
+    "lr": 4.5568318325393065e-05,
+    "weight_decay": 6.201932739756671e-07,
+    "penalty_weight": 0.008253546162087767
+  },
+  "RNA_seq_17490_ResidualMLP_CIndex": {
+    "lr": 2.08283031746687e-05,
+    "weight_decay": 1.6988045227992372e-06,
+    "penalty_weight": 0.000183373994526067,
+    "dropout_rate": 0.26272386590567987
+  },
+  "RNA_seq_17490_ResidualMLP_Cox": {
+    "lr": 1.785590338626951e-05,
+    "weight_decay": 9.669337715031797e-07,
+    "penalty_weight": 0.00038308755570347727,
+    "dropout_rate": 0.25339055538317423
+  },
+  "STATE_Linear_CIndex": {
+    "lr": 0.0005732689739015159,
+    "weight_decay": 3.775722372881086e-06,
+    "penalty_weight": 0.0001005522611499041
+  },
+  "STATE_Linear_Cox": {
+    "lr": 0.0008095489613569313,
+    "weight_decay": 1.6735944539397122e-06,
+    "penalty_weight": 0.00010797854386469006
+  },
+  "STATE_ResidualMLP_CIndex": {
+    "lr": 3.558647658557857e-05,
+    "weight_decay": 7.026720386073228e-07,
+    "penalty_weight": 0.00010133612553762925,
+    "dropout_rate": 0.4565072164476092
+  },
+  "STATE_ResidualMLP_Cox": {
+    "lr": 0.00047642586275353863,
+    "weight_decay": 2.4491333586501042e-06,
+    "penalty_weight": 0.0001311238696355848,
+    "dropout_rate": 0.24507368963563736
+  },
+  "max_combined_Linear_CIndex": {
+    "lr": 0.0006038978803099278,
+    "weight_decay": 3.2298605158951688e-06,
+    "penalty_weight": 0.0027181584300649767
+  },
+  "max_combined_Linear_Cox": {
+    "lr": 0.000496254965493885,
+    "weight_decay": 5.092689929677518e-06,
+    "penalty_weight": 0.005082175625105827
+  },
+  "max_combined_ResidualMLP_CIndex": {
+    "lr": 3.253969122282339e-05,
+    "weight_decay": 1.5428171705694568e-06,
+    "penalty_weight": 0.00017370609886186336,
+    "dropout_rate": 0.3179024376909147
+  },
+  "max_combined_ResidualMLP_Cox": {
+    "lr": 5.722508708957649e-05,
+    "weight_decay": 2.9042267756377263e-06,
+    "penalty_weight": 0.00018937762284835228,
+    "dropout_rate": 0.3724453871654541
+  },
+  "scGPT_Linear_CIndex": {
+    "lr": 0.0009088803081480594,
+    "weight_decay": 1.401920757259995e-06,
+    "penalty_weight": 0.00010291833674635489
+  },
+  "scGPT_Linear_Cox": {
+    "lr": 0.0008339205100566803,
+    "weight_decay": 2.229765806998261e-06,
+    "penalty_weight": 0.00010245760855822459
+  },
+  "scGPT_ResidualMLP_CIndex": {
+    "lr": 1.1994482721692021e-05,
+    "weight_decay": 9.515531096380372e-07,
+    "penalty_weight": 0.00010145041546075396,
+    "dropout_rate": 0.10116134347597253
+  },
+  "scGPT_ResidualMLP_Cox": {
+    "lr": 0.0005436628755924063,
+    "weight_decay": 1.1718733494862517e-06,
+    "penalty_weight": 0.00010191138003375007,
+    "dropout_rate": 0.430186558520523
+  },
+  "ssGSEA_combined_Linear_CIndex": {
+    "lr": 0.0008909090172015962,
+    "weight_decay": 1.3747508574130578e-06,
+    "penalty_weight": 0.00016599656492396805
+  },
+  "ssGSEA_combined_Linear_Cox": {
+    "lr": 0.0006073031071732535,
+    "weight_decay": 2.300424373301303e-06,
+    "penalty_weight": 0.0002991676971485152
+  },
+  "ssGSEA_combined_ResidualMLP_CIndex": {
+    "lr": 0.00011072845622426041,
+    "weight_decay": 1.8540110750960751e-06,
+    "penalty_weight": 0.00011495181427421907,
+    "dropout_rate": 0.23976753005107287
+  },
+  "ssGSEA_combined_ResidualMLP_Cox": {
+    "lr": 0.0005008249630905406,
+    "weight_decay": 2.9955201414308256e-06,
+    "penalty_weight": 0.0002014461529731317,
+    "dropout_rate": 0.3123215289656622
+  }
+}

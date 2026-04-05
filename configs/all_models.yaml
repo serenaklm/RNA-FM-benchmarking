@@ -1,0 +1,55 @@
+# ---- dataset-specific paths ----
+data_paths:
+  TCGA: "./data/RNA_embeddings/TCGA_processed_cleaned.pkl"
+  CPTAC: "./data/RNA_embeddings/CPTAC_processed.pkl"
+  CALGB: "./data/RNA_embeddings/CALGB_processed.pkl"
+  Hartwig: "./data/RNA_embeddings/Hartwig_processed.pkl"
+  ICGC: "./data/RNA_embeddings/ICGC_processed.pkl"
+  TARGET_AML: "./data/RNA_embeddings/TARGET_AML_processed.pkl"
+
+split_folders:
+  TCGA: "./splits/TCGA_cleaned"
+  CPTAC: "./splits/CPTAC"
+  CALGB: "./splits/CALGB"
+  Hartwig: "./splits/Hartwig"
+  ICGC: "./splits/ICGC"
+  TARGET_AML: "./splits/TARGET_AML"
+
+# ---- shared data settings ----
+data:
+  batch_size: 128
+  num_workers: 4
+  endpoint: "PFS"   # shared default; can override via CLI if you want
+
+model:
+  lr: 5e-4
+  weight_decay: 5e-6
+
+  ResidualMLP:
+    hidden_dim: 512
+    num_layers: 3
+    non_linearity: "GELU"
+    dropout_rate: 0.3
+    penalty_weight: 1e-3
+
+  MLP:
+    hidden_dim: 512
+    num_layers: 3
+    non_linearity: "GELU"
+    dropout_rate: 0.3
+    penalty_weight: 1e-3
+
+  Linear:
+    penalty_weight: 1e-3
+
+trainer:
+  max_epochs: 500
+  accelerator: gpu
+  devices: 1
+  gradient_clip_val: 1.5
+  log_every_n_steps: 10
+  accumulate_grad_batches: 4
+
+callbacks:
+  patience: 50
+  monitor: "val/loss"

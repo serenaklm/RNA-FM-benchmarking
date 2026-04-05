@@ -1,0 +1,384 @@
+dataset,feature,mean_coef,std_coef,abs_mean_coef,feature_group
+TCGA,diagnoses.tumor_grade__Low Grade,-2.0535200471076074,0.06592474289914056,2.0535200471076074,diagnoses.tumor_grade
+TCGA,project.project_id__TCGA-CHOL,2.0487385831878493,0.9991758408887936,2.0487385831878493,project.project_id
+TCGA,diagnoses.tissue_or_organ_of_origin__Transverse colon,-1.9425475260867,0.6286247442943604,1.9425475260867,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.primary_diagnosis__Diffuse large B-cell lymphoma, NOS",1.7341500441795723,0.23838202405973394,1.7341500441795723,diagnoses.primary_diagnosis
+TCGA,"diagnoses.tissue_or_organ_of_origin__Testis, NOS",-1.663902619820383,0.5281412200837982,1.663902619820383,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-DLBC,-1.6036117563917507,0.343937318974176,1.6036117563917507,project.project_id
+TCGA,diagnoses.morphology__8582/3,-1.367835781672363,0.5026153396630532,1.367835781672363,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Thymoma, type AB, malignant",-1.367835781672363,0.5026153396630532,1.367835781672363,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Thyroid gland,-1.269189464316775,0.14691773362429875,1.269189464316775,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-TGCT,1.263628647952547,0.4803145611903944,1.263628647952547,project.project_id
+TCGA,diagnoses.morphology__8260/3,1.0393457788894576,0.1852827074852963,1.0393457788894576,diagnoses.morphology
+TCGA,"diagnoses.tissue_or_organ_of_origin__Lymph nodes of head, face and neck",1.0203546735594702,0.14438838082208574,1.0203546735594702,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-LIHC,1.0082080030358196,0.1632090296610884,1.0082080030358196,project.project_id
+TCGA,project.project_id__TCGA-THYM,-0.9873906522212937,0.20401962276138272,0.9873906522212937,project.project_id
+TCGA,diagnoses.ajcc_pathologic_m,0.9633499406712073,0.07121026255548545,0.9633499406712073,diagnoses.ajcc_pathologic_m
+TCGA,demographic.age_at_index__missing,-0.9139163902308866,0.14053282169576492,0.9139163902308866,demographic.age_at_index
+TCGA,diagnoses.tumor_grade__G4,0.8897494579453996,0.12797113832062715,0.8897494579453996,diagnoses.tumor_grade
+TCGA,"diagnoses.tissue_or_organ_of_origin__Floor of mouth, NOS",0.8679596577249267,0.1270412632347384,0.8679596577249267,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.prior_treatment__missing,-0.7907221358334334,0.11652013997347979,0.7907221358334334,diagnoses.prior_treatment
+TCGA,"diagnoses.tissue_or_organ_of_origin__Colon, NOS",-0.7802579628192252,0.2552239578454492,0.7802579628192252,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Middle lobe, lung",0.7335355634501396,0.1340573522013684,0.7335355634501396,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Kidney, NOS",-0.7302109794283298,0.15305639513199712,0.7302109794283298,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__8310/3,0.7302081334012708,0.4587520653475299,0.7302081334012708,diagnoses.morphology
+TCGA,"diagnoses.tissue_or_organ_of_origin__Rectum, NOS",-0.7291980657919757,0.16688705460619946,0.7291980657919757,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.primary_diagnosis__Papillary adenocarcinoma, NOS",-0.7107804139371544,0.24342941617163075,0.7107804139371544,diagnoses.primary_diagnosis
+TCGA,"diagnoses.tissue_or_organ_of_origin__Bone, NOS",0.7023769028688538,0.048003001164949766,0.7023769028688538,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Bone marrow,0.6891315374748547,0.2154231875025965,0.6891315374748547,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Mouth, NOS",0.6743857025148712,0.17826720039936922,0.6743857025148712,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Head of pancreas,0.673059464164351,0.10852014325008738,0.673059464164351,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Stomach, NOS",-0.6649433048384313,0.6887323322412334,0.6649433048384313,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Middle third of esophagus,0.6366135737075844,0.19134294935706908,0.6366135737075844,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__9680/3,-0.6259033478021541,0.18914119202311305,0.6259033478021541,diagnoses.morphology
+TCGA,diagnoses.residual_disease__R2,0.6071494136785353,0.083853198230981,0.6071494136785353,diagnoses.residual_disease
+TCGA,diagnoses.tissue_or_organ_of_origin__Intra-abdominal lymph nodes,0.5955171655342772,0.14150778011739779,0.5955171655342772,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.prior_treatment,0.577673727100769,0.054510089549887154,0.577673727100769,diagnoses.prior_treatment
+TCGA,diagnoses.morphology__8160/3,-0.5769919735923725,0.5109985569803149,0.5769919735923725,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Cholangiocarcinoma,-0.5769919735923724,0.510998556980315,0.5769919735923724,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8370/3,0.575189950076048,1.3797431534891365,0.575189950076048,diagnoses.morphology
+TCGA,diagnoses.morphology__8130/3,-0.5689051349370422,0.18183956649900945,0.5689051349370422,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Renal cell carcinoma, NOS",-0.5655873266973603,0.46483062788915336,0.5655873266973603,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8312/3,-0.5655873266973603,0.46483062788915336,0.5655873266973603,diagnoses.morphology
+TCGA,diagnoses.tissue_or_organ_of_origin__Cheek mucosa,-0.5631044099208826,0.4332447613750203,0.5631044099208826,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tumor_grade__GX,0.5525100940275609,0.023784991401780826,0.5525100940275609,diagnoses.tumor_grade
+TCGA,project.project_id__TCGA-UCS,-0.5472132509774101,0.21800969463021247,0.5472132509774101,project.project_id
+TCGA,project.project_id__TCGA-PCPG,-0.5449222660077696,0.34696823040476155,0.5449222660077696,project.project_id
+TCGA,"diagnoses.primary_diagnosis__Mesothelioma, biphasic, malignant",0.5436489290768879,0.11357946995369969,0.5436489290768879,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9053/3,0.5436489290768879,0.11357946995369969,0.5436489290768879,diagnoses.morphology
+TCGA,project.project_id__TCGA-BRCA,-0.5380239223808597,0.1361686430824956,0.5380239223808597,project.project_id
+TCGA,diagnoses.primary_diagnosis__Mullerian mixed tumor,0.5230041811345777,0.06470191581629191,0.5230041811345777,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8950/3,0.5230041811345777,0.06470191581629191,0.5230041811345777,diagnoses.morphology
+TCGA,project.project_id__TCGA-BLCA,0.5093913680070215,0.1540455170872456,0.5093913680070215,project.project_id
+TCGA,project.project_id__TCGA-UVM,-0.5066253458273795,0.12609996134384652,0.5066253458273795,project.project_id
+TCGA,project.project_id__TCGA-ESCA,0.5026097355396613,0.12769512874372038,0.5026097355396613,project.project_id
+TCGA,diagnoses.synchronous_malignancy__missing,0.49658321735726957,0.6353278681789738,0.49658321735726957,diagnoses.synchronous_malignancy
+TCGA,diagnoses.ajcc_pathologic_t__missing,0.49489087505694795,0.1231807431533102,0.49489087505694795,diagnoses.ajcc_pathologic_t
+TCGA,diagnoses.residual_disease__R0,-0.48598443712327455,0.038042160565049644,0.48598443712327455,diagnoses.residual_disease
+TCGA,diagnoses.tissue_or_organ_of_origin__Fundus of stomach,-0.47878313056739474,0.3184376825095767,0.47878313056739474,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Breast, NOS",-0.47557971992832204,0.10759714254032189,0.47557971992832204,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-GBM,0.47492836832970653,0.15943466004958812,0.47492836832970653,project.project_id
+TCGA,project.project_id__TCGA-SKCM,-0.46376766327822594,0.14771865610626592,0.46376766327822594,project.project_id
+TCGA,diagnoses.tissue_or_organ_of_origin__Liver,0.449542868603343,0.08308376305912546,0.449542868603343,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Upper lobe, lung",0.44930867923192197,0.07614036147233773,0.44930867923192197,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__8317/3,-0.4447961191999732,0.31302622856804874,0.4447961191999732,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Renal cell carcinoma, chromophobe type",-0.4447961191999732,0.31302622856804874,0.4447961191999732,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Prostate gland,-0.4425489818918451,0.12826670883363628,0.4425489818918451,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__8770/3,0.4367179959900637,0.11640743958177836,0.4367179959900637,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Mixed epithelioid and spindle cell melanoma,0.4367179959900637,0.11640743958177836,0.4367179959900637,diagnoses.primary_diagnosis
+TCGA,project.project_id__TCGA-STAD,0.4342600166728645,0.12845022371919806,0.4342600166728645,project.project_id
+TCGA,"diagnoses.tissue_or_organ_of_origin__Pleura, NOS",0.43270409547498706,0.1714562921664589,0.43270409547498706,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Cortex of adrenal gland,-0.42103002084359825,0.22575993615587736,0.42103002084359825,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Connective, subcutaneous and other soft tissues of lower limb and hip",-0.4208737336070847,0.18753084505560738,0.4208737336070847,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Sigmoid colon,-0.40887722517504344,0.06791218416113408,0.40887722517504344,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-THCA,-0.4059593369555222,0.06592004743524592,0.4059593369555222,project.project_id
+TCGA,project.project_id__TCGA-PAAD,0.3998631890561278,0.13243026470614563,0.3998631890561278,project.project_id
+TCGA,diagnoses.tumor_grade__High Grade,0.3981018551247228,0.11876720989570042,0.3981018551247228,diagnoses.tumor_grade
+TCGA,"diagnoses.tissue_or_organ_of_origin__Pelvis, NOS",0.38932403111263875,0.0778939779133744,0.38932403111263875,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Skin, NOS",0.3885553957420538,0.0366964739953324,0.3885553957420538,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-ACC,0.38488287502964447,2.2277870264207085,0.38488287502964447,project.project_id
+TCGA,"diagnoses.tissue_or_organ_of_origin__Pancreas, NOS",0.3830946157163073,0.13140404825389515,0.3830946157163073,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-CESC,-0.3661798343873488,0.11711333650023974,0.3661798343873488,project.project_id
+TCGA,diagnoses.morphology__8071/3,0.36243128390687895,0.10370154710270363,0.36243128390687895,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Squamous cell carcinoma, keratinizing, NOS",0.36243128390687895,0.10370154710270363,0.36243128390687895,diagnoses.primary_diagnosis
+TCGA,"diagnoses.primary_diagnosis__Pheochromocytoma, NOS",-0.36074105436546744,0.09572527456810165,0.36074105436546744,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8700/0,-0.36074105436546744,0.09572527456810165,0.36074105436546744,diagnoses.morphology
+TCGA,project.project_id__TCGA-PRAD,-0.3525807651452272,0.09000591359876882,0.3525807651452272,project.project_id
+TCGA,project.project_id__TCGA-HNSC,-0.3521706822239542,0.12416527216373836,0.3521706822239542,project.project_id
+TCGA,diagnoses.tissue_or_organ_of_origin__Anterior wall of bladder,-0.35205461452111153,0.29963781417438706,0.35205461452111153,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Endometrium,-0.35049034831905007,0.1662251392770667,0.35049034831905007,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-READ,-0.33869361779227564,0.18056902630551885,0.33869361779227564,project.project_id
+TCGA,"diagnoses.tissue_or_organ_of_origin__Uterus, NOS",0.3303553889031984,0.18150456082505864,0.3303553889031984,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__8344/3,0.3269152211395635,0.19858928279437368,0.3269152211395635,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Papillary carcinoma, columnar cell",0.3269152211395635,0.19858928279437368,0.3269152211395635,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9440/3,0.32570265442014146,0.12043297435728068,0.32570265442014146,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Glioblastoma,0.32570265442014146,0.12043297435728066,0.32570265442014146,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Posterior wall of bladder,0.3241403151002461,0.21353990245130922,0.3241403151002461,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__8482/3,0.3209501989519886,0.18934703070624098,0.3209501989519886,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Mucinous adenocarcinoma, endocervical type",0.3209501989519885,0.189347030706241,0.3209501989519885,diagnoses.primary_diagnosis
+TCGA,"diagnoses.primary_diagnosis__Malignant melanoma, NOS",0.31996767103289553,0.16432521959694965,0.31996767103289553,diagnoses.primary_diagnosis
+TCGA,diagnoses.residual_disease__MISSING,-0.31971705491168423,0.03920054498608984,0.31971705491168423,diagnoses.residual_disease
+TCGA,diagnoses.tumor_grade__G1,-0.31817217834613226,0.08192869614920886,0.31817217834613226,diagnoses.tumor_grade
+TCGA,"diagnoses.tissue_or_organ_of_origin__Lymph node, NOS",0.31635275601529866,0.12573734246179694,0.31635275601529866,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.primary_diagnosis__Acinar cell carcinoma,-0.31412713824655253,0.08249179076502125,0.31412713824655253,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8550/3,-0.31412713824655253,0.08249179076502125,0.31412713824655253,diagnoses.morphology
+TCGA,"diagnoses.tissue_or_organ_of_origin__Brain, NOS",0.31084365995347635,0.09187437315260504,0.31084365995347635,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.primary_diagnosis__Epithelioid cell melanoma,0.29962604624216566,0.07529296851684492,0.29962604624216566,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8771/3,0.29962604624216566,0.07529296851684492,0.29962604624216566,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Squamous cell carcinoma, large cell, nonkeratinizing, NOS",0.2990565706681699,0.10830096293062214,0.2990565706681699,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8072/3,0.2990565706681699,0.10830096293062214,0.2990565706681699,diagnoses.morphology
+TCGA,"diagnoses.tissue_or_organ_of_origin__Adrenal gland, NOS",-0.29299856762886656,0.3293094040025027,0.29299856762886656,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__9873/3,0.292765603937361,0.2550484731530105,0.292765603937361,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Acute myeloid leukemia without maturation,0.292765603937361,0.2550484731530105,0.292765603937361,diagnoses.primary_diagnosis
+TCGA,diagnoses.primary_diagnosis__Adrenal cortical carcinoma,-0.29068726504605047,1.1290381771469182,0.29068726504605047,diagnoses.primary_diagnosis
+TCGA,project.project_id__TCGA-LUSC,-0.27720469538956627,0.1233725674016372,0.27720469538956627,project.project_id
+TCGA,project.project_id__TCGA-LGG,0.2759954823593544,0.05635483185566334,0.2759954823593544,project.project_id
+TCGA,diagnoses.tumor_grade__G3,0.2723836669409366,0.04539559859749735,0.2723836669409366,diagnoses.tumor_grade
+TCGA,diagnoses.primary_diagnosis__Acute monocytic leukemia,0.26631353764513654,0.29834752249317986,0.26631353764513654,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9891/3,0.26631353764513654,0.29834752249317986,0.26631353764513654,diagnoses.morphology
+TCGA,diagnoses.morphology__8170/3,-0.2660287114960809,0.06929967758982795,0.2660287114960809,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Hepatocellular carcinoma, NOS",-0.26602871149608087,0.06929967758982794,0.26602871149608087,diagnoses.primary_diagnosis
+TCGA,project.project_id__TCGA-KIRC,-0.2650437488315859,0.12054183800928203,0.2650437488315859,project.project_id
+TCGA,demographic.age_at_index,0.2531805482525361,0.017752590582210872,0.2531805482525361,demographic.age_at_index
+TCGA,diagnoses.morphology__8522/3,-0.2508075194231506,0.11029093733882735,0.2508075194231506,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Infiltrating duct and lobular carcinoma,-0.2508075194231506,0.11029093733882735,0.2508075194231506,diagnoses.primary_diagnosis
+TCGA,diagnoses.ajcc_pathologic_t,0.2506103493131369,0.019288818647471704,0.2506103493131369,diagnoses.ajcc_pathologic_t
+TCGA,demographic.race__native hawaiian or other pacific islander,0.2489718905047325,0.2555681503423941,0.2489718905047325,demographic.race
+TCGA,diagnoses.tissue_or_organ_of_origin__Trigone of bladder,0.2487256489224924,0.3269496971005218,0.2487256489224924,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Head, face or neck, NOS",0.24819221259765634,0.21879272726342758,0.24819221259765634,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Tonsil, NOS",0.24713687765381964,0.22853378507674385,0.24713687765381964,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.primary_diagnosis__Undifferentiated sarcoma,0.2453598005100896,0.08298825567450646,0.2453598005100896,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8805/3,0.2453598005100896,0.08298825567450646,0.2453598005100896,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Papillary transitional cell carcinoma, non-invasive",-0.24278183797614927,0.297837563336138,0.24278183797614927,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Cecum,-0.23964668760086533,0.13954665811902306,0.23964668760086533,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Thorax, NOS",0.23189826320218154,0.12434312198320842,0.23189826320218154,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Cervix uteri,-0.2307560291816678,0.06367956198017137,0.2307560291816678,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Rectosigmoid junction,-0.22728326082388742,0.1423525317820832,0.22728326082388742,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Intrahepatic bile duct,0.2265874300650438,0.3607697018737688,0.2265874300650438,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-COAD,-0.22474005465597774,0.06537924258881514,0.22474005465597774,project.project_id
+TCGA,demographic.race__MISSING,-0.22091648034663577,0.03480135783222048,0.22091648034663577,demographic.race
+TCGA,"diagnoses.tissue_or_organ_of_origin__Lower lobe, lung",0.21601222170931483,0.056944236535452934,0.21601222170931483,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Larynx, NOS",-0.2130495261058535,0.23780068838215138,0.2130495261058535,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.primary_diagnosis__Acute myelomonocytic leukemia,0.2115216312928187,0.23214617966789441,0.2115216312928187,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9867/3,0.2115216312928187,0.23214617966789441,0.2115216312928187,diagnoses.morphology
+TCGA,diagnoses.ajcc_pathologic_n__missing,0.21126299006372146,0.04477245428333401,0.21126299006372146,diagnoses.ajcc_pathologic_n
+TCGA,"diagnoses.tissue_or_organ_of_origin__Vagina, NOS",0.2096011354581187,0.26269135310304126,0.2096011354581187,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__9866/3,-0.20632928059011868,0.41265856118023736,0.20632928059011868,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Acute promyelocytic leukaemia, t(15;17)(q22;q11-12)",-0.20632928059011868,0.41265856118023736,0.20632928059011868,diagnoses.primary_diagnosis
+TCGA,"diagnoses.tissue_or_organ_of_origin__Overlapping lesion of lip, oral cavity and pharynx",0.20054381347234312,0.09480472256524537,0.20054381347234312,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-UCEC,-0.20027633856116728,0.09187141534962878,0.20027633856116728,project.project_id
+TCGA,diagnoses.morphology__8720/3,-0.19986258994813969,0.09368446284248451,0.19986258994813969,diagnoses.morphology
+TCGA,project.project_id__TCGA-KICH,0.1996687909718921,0.834846011173719,0.1996687909718921,project.project_id
+TCGA,"diagnoses.tissue_or_organ_of_origin__Lung, NOS",0.19850760823053676,0.022949594222522293,0.19850760823053676,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Body of stomach,-0.19012970899607054,0.25804186569620335,0.19012970899607054,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.primary_diagnosis__Adenocarcinoma, endocervical type",-0.18955726535741052,0.16112624642568057,0.18955726535741052,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8384/3,-0.18955726535741052,0.16112624642568057,0.18955726535741052,diagnoses.morphology
+TCGA,diagnoses.tissue_or_organ_of_origin__Ascending colon,-0.18612145062587662,0.054430329509231413,0.18612145062587662,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Ovary,0.1840078671957797,0.06448515301079474,0.1840078671957797,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.primary_diagnosis__Squamous cell carcinoma, NOS",0.18388466050539895,0.06899539698552555,0.18388466050539895,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8070/3,0.18388466050539895,0.06899539698552555,0.18388466050539895,diagnoses.morphology
+TCGA,project.project_id__TCGA-SARC,0.1838642652080872,0.12750204732470885,0.1838642652080872,project.project_id
+TCGA,"diagnoses.tissue_or_organ_of_origin__Abdomen, NOS",0.18246735676078546,0.22517790883003735,0.18246735676078546,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.primary_diagnosis__Oligodendroglioma, NOS",-0.1814943055192773,0.0732815730015187,0.1814943055192773,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9450/3,-0.1814943055192773,0.0732815730015187,0.1814943055192773,diagnoses.morphology
+TCGA,diagnoses.ajcc_pathologic_n,0.17967117049982312,0.016155646468510993,0.17967117049982312,diagnoses.ajcc_pathologic_n
+TCGA,diagnoses.tissue_or_organ_of_origin__MISSING,0.17903329382398278,0.03130519955752621,0.17903329382398278,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-MESO,0.1750164117218794,0.30606411775219244,0.1750164117218794,project.project_id
+TCGA,diagnoses.morphology__9401/3,0.17242038911415172,0.02871405383685859,0.17242038911415172,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Astrocytoma, anaplastic",0.17242038911415172,0.02871405383685859,0.17242038911415172,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Lateral wall of bladder,0.1692590759607675,0.36845639119912776,0.1692590759607675,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tumor_grade__MISSING,0.16898961679486968,0.08277886886546243,0.16898961679486968,diagnoses.tumor_grade
+TCGA,diagnoses.primary_diagnosis__Transitional cell carcinoma,-0.16676650677139876,0.05266227047849916,0.16676650677139876,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8120/3,-0.16676650677139876,0.05266227047849916,0.16676650677139876,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__MISSING,0.16347479789802064,0.06007918335503667,0.16347479789802064,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8772/3,-0.161506397582645,0.2001714133041995,0.161506397582645,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Spindle cell melanoma, NOS",-0.161506397582645,0.2001714133041995,0.161506397582645,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Descending colon,-0.15649025361805205,0.28764100490668365,0.15649025361805205,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Tongue, NOS",0.1504053163717269,0.136284221296146,0.1504053163717269,diagnoses.tissue_or_organ_of_origin
+TCGA,project.project_id__TCGA-KIRP,-0.1445866470282307,0.11400414969689113,0.1445866470282307,project.project_id
+TCGA,diagnoses.primary_diagnosis__Papillary transitional cell carcinoma,0.1429510260607751,0.20914381156647505,0.1429510260607751,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8083/3,-0.14176051677090667,0.1007665544359538,0.14176051677090667,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Basaloid squamous cell carcinoma,-0.14176051677090667,0.1007665544359538,0.14176051677090667,diagnoses.primary_diagnosis
+TCGA,diagnoses.ajcc_pathologic_stage__missing,0.14035685637873851,0.06894838561237154,0.14035685637873851,diagnoses.ajcc_pathologic_stage
+TCGA,"diagnoses.primary_diagnosis__Extra-adrenal paraganglioma, NOS",-0.1378326711606046,0.14424337915945218,0.1378326711606046,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8693/1,-0.1378326711606046,0.14424337915945218,0.1378326711606046,diagnoses.morphology
+TCGA,diagnoses.tissue_or_organ_of_origin__Anterior mediastinum,0.13143415447232557,0.1561666237698157,0.13143415447232557,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.primary_diagnosis__Epithelioid mesothelioma, malignant",0.124840199829335,0.13491003292435666,0.124840199829335,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9052/3,0.12484019982933499,0.13491003292435666,0.12484019982933499,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Basal cell carcinoma, NOS",-0.12201037131593766,0.09919632328293769,0.12201037131593766,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8090/3,-0.12201037131593764,0.09919632328293766,0.12201037131593764,diagnoses.morphology
+TCGA,"diagnoses.tissue_or_organ_of_origin__Peritoneum, NOS",0.1206382199197524,0.10222441851466758,0.1206382199197524,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.residual_disease__RX,0.11821705044889994,0.04795682343824775,0.11821705044889994,diagnoses.residual_disease
+TCGA,"diagnoses.primary_diagnosis__Endometrioid adenocarcinoma, NOS",-0.11437987625112851,0.059188623939691196,0.11437987625112851,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8380/3,-0.11437987625112851,0.0591886239396912,0.11437987625112851,diagnoses.morphology
+TCGA,project.project_id__TCGA-LUAD,0.10683973129214175,0.10939060838377637,0.10683973129214175,project.project_id
+TCGA,diagnoses.morphology__9400/3,-0.10608435571481531,0.05043974391127164,0.10608435571481531,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Astrocytoma, NOS",-0.10608435571481531,0.05043974391127163,0.10608435571481531,diagnoses.primary_diagnosis
+TCGA,"diagnoses.primary_diagnosis__Clear cell adenocarcinoma, NOS",-0.10597068072895474,0.3062990651437856,0.10597068072895474,diagnoses.primary_diagnosis
+TCGA,diagnoses.prior_malignancy,0.10314422577012983,0.09054403477939935,0.10314422577012983,diagnoses.prior_malignancy
+TCGA,diagnoses.morphology__8575/3,0.09989630340157052,0.07750616244436635,0.09989630340157052,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Metaplastic carcinoma, NOS",0.09989630340157052,0.07750616244436635,0.09989630340157052,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9872/3,-0.09923472168475957,0.20550872075122797,0.09923472168475957,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Acute myeloid leukemia, minimal differentiation",-0.09923472168475957,0.20550872075122797,0.09923472168475957,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8140/3,0.09616581307965569,0.04413309118464916,0.09616581307965569,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Adenocarcinoma, NOS",0.09616581307965567,0.04413309118464917,0.09616581307965567,diagnoses.primary_diagnosis
+TCGA,diagnoses.synchronous_malignancy,0.09344477659638582,0.19356483987408335,0.09344477659638582,diagnoses.synchronous_malignancy
+TCGA,diagnoses.morphology__8830/3,-0.09180799772704676,0.059176264342375724,0.09180799772704676,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Malignant fibrous histiocytoma,-0.09180799772704676,0.059176264342375724,0.09180799772704676,diagnoses.primary_diagnosis
+TCGA,demographic.race__white,-0.09151853035515352,0.03497112801885736,0.09151853035515352,demographic.race
+TCGA,diagnoses.tumor_grade__G2,0.08995753461628271,0.05885489662932972,0.08995753461628271,diagnoses.tumor_grade
+TCGA,"diagnoses.primary_diagnosis__Carcinoma, diffuse type",-0.0867567085330038,0.06389436243242186,0.0867567085330038,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8145/3,-0.0867567085330038,0.06389436243242186,0.0867567085330038,diagnoses.morphology
+TCGA,diagnoses.morphology__8144/3,0.08589659928044095,0.07855186872766426,0.08589659928044095,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Adenocarcinoma, intestinal type",0.08589659928044094,0.07855186872766426,0.08589659928044094,diagnoses.primary_diagnosis
+TCGA,diagnoses.primary_diagnosis__Signet ring cell carcinoma,-0.08474776334099417,0.11659269851853583,0.08474776334099417,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8490/3,-0.08474776334099417,0.11659269851853583,0.08474776334099417,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Mucinous adenocarcinoma,-0.08446331670466824,0.02881894669932638,0.08446331670466824,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8480/3,-0.08446331670466824,0.02881894669932638,0.08446331670466824,diagnoses.morphology
+TCGA,project.project_id__TCGA-OV,0.0804127644125491,0.0644032427886304,0.0804127644125491,project.project_id
+TCGA,diagnoses.residual_disease__R1,0.08033502790041487,0.0562215413861935,0.08033502790041487,diagnoses.residual_disease
+TCGA,diagnoses.tissue_or_organ_of_origin__Lower third of esophagus,0.07838485089949311,0.11006681541095488,0.07838485089949311,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.primary_diagnosis__Infiltrating duct carcinoma, NOS",0.07409674055983115,0.058106100236142724,0.07409674055983115,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8500/3,0.07409674055983115,0.058106100236142724,0.07409674055983115,diagnoses.morphology
+TCGA,"diagnoses.tissue_or_organ_of_origin__Connective, subcutaneous and other soft tissues of thorax",-0.07349856933766813,0.14699713867533626,0.07349856933766813,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__9874/3,0.07269320089366456,0.263789942873493,0.07269320089366456,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Acute myeloid leukemia with maturation,0.07269320089366456,0.263789942873493,0.07269320089366456,diagnoses.primary_diagnosis
+TCGA,"diagnoses.primary_diagnosis__Pheochromocytoma, malignant",-0.07183807885152751,0.07431243990904834,0.07183807885152751,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8700/3,-0.07183807885152751,0.07431243990904834,0.07183807885152751,diagnoses.morphology
+TCGA,project.project_id__TCGA-LAML,0.07068234527126578,0.5799209219890469,0.07068234527126578,project.project_id
+TCGA,diagnoses.morphology__9070/3,-0.06691024796813558,0.12300528561415429,0.06691024796813558,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Embryonal carcinoma, NOS",-0.06691024796813558,0.12300528561415429,0.06691024796813558,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Intrathoracic lymph nodes,-0.06631586747373361,0.13263173494746722,0.06631586747373361,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.tissue_or_organ_of_origin__Base of tongue, NOS",-0.06162700672223849,0.2712981799100407,0.06162700672223849,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.primary_diagnosis__Mixed glioma,-0.05996222768027913,0.06843348421377879,0.05996222768027913,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9382/3,-0.059962227680279125,0.06843348421377878,0.059962227680279125,diagnoses.morphology
+TCGA,diagnoses.morphology__8255/3,-0.05696368828257552,0.06670104822519453,0.05696368828257552,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Adenocarcinoma with mixed subtypes,-0.05696368828257552,0.06670104822519453,0.05696368828257552,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8584/3,0.05637701301095625,0.11192276947399983,0.05637701301095625,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Thymoma, type B2, malignant",0.05637701301095625,0.11192276947399983,0.05637701301095625,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8520/3,-0.05530842074292789,0.04580700800263467,0.05530842074292789,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Lobular carcinoma, NOS",-0.05530842074292789,0.04580700800263467,0.05530842074292789,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Skin of scalp and neck,0.05403492518190176,0.10806985036380352,0.05403492518190176,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.primary_diagnosis__Dedifferentiated liposarcoma,0.05163701069460205,0.09579087541716516,0.05163701069460205,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8858/3,0.05163701069460205,0.09579087541716516,0.05163701069460205,diagnoses.morphology
+TCGA,diagnoses.ajcc_pathologic_m__missing,0.047981539554450406,0.013493100778207753,0.047981539554450406,diagnoses.ajcc_pathologic_m
+TCGA,"diagnoses.primary_diagnosis__Serous cystadenocarcinoma, NOS",0.04691219711929599,0.05323039604631365,0.04691219711929599,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8441/3,0.046912197119295986,0.05323039604631363,0.046912197119295986,diagnoses.morphology
+TCGA,diagnoses.tissue_or_organ_of_origin__Thymus,0.04344635786326869,0.21788372476846463,0.04344635786326869,diagnoses.tissue_or_organ_of_origin
+TCGA,demographic.race__american indian or alaska native,0.04280724610389315,0.2812863690439475,0.04280724610389315,demographic.race
+TCGA,diagnoses.tissue_or_organ_of_origin__Body of pancreas,-0.04241607618281905,0.1417194622549363,0.04241607618281905,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.ajcc_pathologic_stage,0.04238178082924658,0.0285208443559162,0.04238178082924658,diagnoses.ajcc_pathologic_stage
+TCGA,diagnoses.morphology__9451/3,-0.03707587442274635,0.05212331286500649,0.03707587442274635,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Oligodendroglioma, anaplastic",-0.03707587442274635,0.05212331286500649,0.03707587442274635,diagnoses.primary_diagnosis
+TCGA,"diagnoses.tissue_or_organ_of_origin__Cardia, NOS",-0.032446397815474134,0.09125933749957345,0.032446397815474134,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.morphology__MISSING,0.03132186282307159,0.09523054002190545,0.03132186282307159,diagnoses.morphology
+TCGA,diagnoses.morphology__9061/3,-0.03128735431166404,0.17354610874722695,0.03128735431166404,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Seminoma, NOS",-0.03128735431166404,0.17354610874722692,0.03128735431166404,diagnoses.primary_diagnosis
+TCGA,"diagnoses.tissue_or_organ_of_origin__Bladder, NOS",0.03108933235671879,0.25800033557251184,0.03108933235671879,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.tissue_or_organ_of_origin__Retroperitoneum,-0.029824456005404086,0.05593045224459015,0.029824456005404086,diagnoses.tissue_or_organ_of_origin
+TCGA,"diagnoses.primary_diagnosis__Carcinoma, NOS",-0.028928688981056567,0.1331052911429852,0.028928688981056567,diagnoses.primary_diagnosis
+TCGA,diagnoses.primary_diagnosis__Infiltrating duct mixed with other types of carcinoma,0.028654566251005802,0.04569634158133317,0.028654566251005802,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8523/3,0.0286545662510058,0.04569634158133317,0.0286545662510058,diagnoses.morphology
+TCGA,diagnoses.morphology__8581/3,0.02427072123845209,0.04854144247690418,0.02427072123845209,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Thymoma, type A, malignant",0.02427072123845209,0.04854144247690418,0.02427072123845209,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8811/3,-0.023605104017298078,0.055460246259689774,0.023605104017298078,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Fibromyxosarcoma,-0.023605104017298078,0.055460246259689774,0.023605104017298078,diagnoses.primary_diagnosis
+TCGA,"diagnoses.primary_diagnosis__Leiomyosarcoma, NOS",0.02354725175157894,0.052094568262988965,0.02354725175157894,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8890/3,0.02354725175157894,0.052094568262988965,0.02354725175157894,diagnoses.morphology
+TCGA,demographic.race__asian,0.02165910528428063,0.045944705684964185,0.02165910528428063,demographic.race
+TCGA,diagnoses.morphology__8252/3,-0.020957935792431142,0.13006449315997673,0.020957935792431142,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Bronchiolo-alveolar carcinoma, non-mucinous",-0.020957935792431142,0.13006449315997673,0.020957935792431142,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Choroid,0.020339653607722975,0.12332756869500772,0.020339653607722975,diagnoses.tissue_or_organ_of_origin
+TCGA,demographic.gender__female,-0.017066731515687793,0.011647853992657732,0.017066731515687793,demographic.gender
+TCGA,demographic.gender__male,0.01706673150644339,0.011647853987720915,0.01706673150644339,demographic.gender
+TCGA,diagnoses.morphology__8585/3,-0.009553893399643045,0.01910778679928609,0.009553893399643045,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Thymoma, type B3, malignant",-0.009553893399643045,0.01910778679928609,0.009553893399643045,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__9085/3,-0.007414946496277786,0.11542078528675917,0.007414946496277786,diagnoses.morphology
+TCGA,diagnoses.primary_diagnosis__Mixed germ cell tumor,-0.007414946496277786,0.11542078528675917,0.007414946496277786,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8340/3,-0.007312083877503081,0.08495723109605263,0.007312083877503081,diagnoses.morphology
+TCGA,"diagnoses.primary_diagnosis__Papillary carcinoma, follicular variant",-0.007312083877503081,0.08495723109605263,0.007312083877503081,diagnoses.primary_diagnosis
+TCGA,diagnoses.tissue_or_organ_of_origin__Gastric antrum,-0.007137714379068932,0.13656216107256555,0.007137714379068932,diagnoses.tissue_or_organ_of_origin
+TCGA,diagnoses.primary_diagnosis__Tubular adenocarcinoma,-0.006863438594740305,0.08103383786924447,0.006863438594740305,diagnoses.primary_diagnosis
+TCGA,diagnoses.morphology__8211/3,-0.006863438594740303,0.08103383786924447,0.006863438594740303,diagnoses.morphology
+TCGA,diagnoses.prior_malignancy__missing,-0.005725821965976863,0.5898249582841918,0.005725821965976863,diagnoses.prior_malignancy
+TCGA,diagnoses.tissue_or_organ_of_origin__Cerebrum,0.004432017787170844,0.0990779025985174,0.004432017787170844,diagnoses.tissue_or_organ_of_origin
+TCGA,demographic.race__black or african american,-0.0010032311961826342,0.029905373451890562,0.0010032311961826342,demographic.race
+TCGA,project.project_id__MISSING,0.0,0.0,0.0,project.project_id
+TCGA,demographic.gender__MISSING,0.0,0.0,0.0,demographic.gender
+Hartwig,age_at_biopsy__missing,-0.9264585696280925,0.2340451402006683,0.9264585696280925,age_at_biopsy
+Hartwig,primaryTumorLocation__Small bowel/intestine,-0.8675341868491154,0.050050937712093395,0.8675341868491154,primaryTumorLocation
+Hartwig,primaryTumorLocation__Stomach,0.7066538223841706,0.35902120918050756,0.7066538223841706,primaryTumorLocation
+Hartwig,primaryTumorLocation__Esophagus/gastroesophageal junction,0.4147004968687854,0.059364282637084154,0.4147004968687854,primaryTumorLocation
+Hartwig,gender__MISSING,0.3711964359482574,0.10523150739380341,0.3711964359482574,gender
+Hartwig,primaryTumorLocation__Soft tissue,-0.32866066325153576,0.11880401730346758,0.32866066325153576,primaryTumorLocation
+Hartwig,primaryTumorLocation__Breast,-0.2955110076362764,0.029219508906000575,0.2955110076362764,primaryTumorLocation
+Hartwig,primaryTumorLocation__Skin,-0.28831536978858674,0.08701635334716978,0.28831536978858674,primaryTumorLocation
+Hartwig,primaryTumorLocation__MISSING,0.26327370727623867,0.08339040471378507,0.26327370727623867,primaryTumorLocation
+Hartwig,primaryTumorLocation__Ovary,-0.2535100682319309,0.06723605371152946,0.2535100682319309,primaryTumorLocation
+Hartwig,hasSystemicPreTreatment,0.24476912112290364,0.026590944400154196,0.24476912112290364,hasSystemicPreTreatment
+Hartwig,primaryTumorLocation__Ureter/renal pelvis,0.23755057722830292,0.4214375080295154,0.23755057722830292,primaryTumorLocation
+Hartwig,primaryTumorLocation__Pancreas,0.20712005440643866,0.108305629949412,0.20712005440643866,primaryTumorLocation
+Hartwig,gender__male,-0.19277196743460728,0.05340615867156558,0.19277196743460728,gender
+Hartwig,gender__female,-0.17842446851322893,0.06785561778605818,0.17842446851322893,gender
+Hartwig,hasRadiotherapyPreTreatment,0.1544648416128947,0.04660885412269495,0.1544648416128947,hasRadiotherapyPreTreatment
+Hartwig,primaryTumorLocation__Biliary tract,-0.08903733787665358,0.12829058089494863,0.08903733787665358,primaryTumorLocation
+Hartwig,primaryTumorLocation__Bladder,0.0764424846274778,0.10664596145655783,0.0764424846274778,primaryTumorLocation
+Hartwig,primaryTumorLocation__Lung,0.05870301538291859,0.03769211215620637,0.05870301538291859,primaryTumorLocation
+Hartwig,primaryTumorLocation__Kidney,0.056897455032202573,0.05017183068176086,0.056897455032202573,primaryTumorLocation
+Hartwig,age_at_biopsy,-0.04642285738946435,0.02171608706256981,0.04642285738946435,age_at_biopsy
+Hartwig,primaryTumorLocation__Pleura,-0.044332332535415,0.08819990173455715,0.044332332535415,primaryTumorLocation
+Hartwig,primaryTumorLocation__Rectum,0.04373276722105821,0.09781924441317694,0.04373276722105821,primaryTumorLocation
+Hartwig,primaryTumorLocation__Liver,0.04330012783050359,0.11864310744634925,0.04330012783050359,primaryTumorLocation
+Hartwig,primaryTumorLocation__Cancer of unknown primary (CUP),0.04292313663699439,0.11797714286340759,0.04292313663699439,primaryTumorLocation
+Hartwig,primaryTumorLocation__Prostate,0.023611502699678308,0.11018885959272236,0.023611502699678308,primaryTumorLocation
+Hartwig,primaryTumorLocation__Endometrium/uterus,-0.02112223887961634,0.038955771104343055,0.02112223887961634,primaryTumorLocation
+Hartwig,primaryTumorLocation__Cervix,0.011433949658761851,0.2227378817348429,0.011433949658761851,primaryTumorLocation
+Hartwig,primaryTumorLocation__Colon,0.0016801077970963266,0.08390346149503836,0.0016801077970963266,primaryTumorLocation
+Hartwig,hasSystemicPreTreatment__missing,0.0,0.0,0.0,hasSystemicPreTreatment
+Hartwig,hasRadiotherapyPreTreatment__missing,0.0,0.0,0.0,hasRadiotherapyPreTreatment
+CPTAC,diagnoses.ajcc_pathologic_t__missing,1.1056276114368917,0.3016082106807447,1.1056276114368917,diagnoses.ajcc_pathologic_t
+CPTAC,diagnoses.morphology__8290/0,-1.047151129664379,0.5257993598380369,1.047151129664379,diagnoses.morphology
+CPTAC,diagnoses.primary_diagnosis__Oncocytoma,-1.047151129664379,0.5257993598380369,1.047151129664379,diagnoses.primary_diagnosis
+CPTAC,diagnoses.tumor_grade__G4,0.9947389828546196,0.1348371155511791,0.9947389828546196,diagnoses.tumor_grade
+CPTAC,diagnoses.tumor_grade__GX,-0.9450039637751957,0.06741875996094855,0.9450039637751957,diagnoses.tumor_grade
+CPTAC,diagnoses.ajcc_pathologic_stage__missing,0.8259795851936647,0.23568127494504784,0.8259795851936647,diagnoses.ajcc_pathologic_stage
+CPTAC,"diagnoses.tissue_or_organ_of_origin__Tongue, NOS",0.7178305491864128,0.11333576876599037,0.7178305491864128,diagnoses.tissue_or_organ_of_origin
+CPTAC,diagnoses.residual_disease__MISSING,0.6403256010759059,0.13936534130010594,0.6403256010759059,diagnoses.residual_disease
+CPTAC,"diagnoses.tissue_or_organ_of_origin__Kidney, NOS",-0.6159530522254683,0.19648324410731682,0.6159530522254683,diagnoses.tissue_or_organ_of_origin
+CPTAC,"diagnoses.primary_diagnosis__Infiltrating duct carcinoma, NOS",0.5245423057183026,0.058864113932760004,0.5245423057183026,diagnoses.primary_diagnosis
+CPTAC,diagnoses.morphology__8500/3,0.5245423057183026,0.058864113932760004,0.5245423057183026,diagnoses.morphology
+CPTAC,"diagnoses.tissue_or_organ_of_origin__Pancreas, NOS",0.5245423057183026,0.058864113932760004,0.5245423057183026,diagnoses.tissue_or_organ_of_origin
+CPTAC,diagnoses.tumor_grade__MISSING,0.5009626949496224,0.21177580775928623,0.5009626949496224,diagnoses.tumor_grade
+CPTAC,demographic.race__MISSING,0.45032739747004147,0.5874207915149102,0.45032739747004147,demographic.race
+CPTAC,diagnoses.tumor_grade__G1,-0.42832358084316696,0.07337152058363434,0.42832358084316696,diagnoses.tumor_grade
+CPTAC,"diagnoses.tissue_or_organ_of_origin__Floor of mouth, NOS",-0.4260293354217238,0.3453222301673242,0.4260293354217238,diagnoses.tissue_or_organ_of_origin
+CPTAC,diagnoses.residual_disease__R0,-0.4043438249100858,0.05237209238197384,0.4043438249100858,diagnoses.residual_disease
+CPTAC,diagnoses.ajcc_pathologic_m,0.3242451268441794,0.07438036848136786,0.3242451268441794,diagnoses.ajcc_pathologic_m
+CPTAC,diagnoses.tumor_grade__G2,-0.31791602210789566,0.09984781886639037,0.31791602210789566,diagnoses.tumor_grade
+CPTAC,diagnoses.residual_disease__RX,-0.3178453557666335,0.04769273812007964,0.3178453557666335,diagnoses.residual_disease
+CPTAC,demographic.race__black or african american,-0.30658268971019004,0.20804982829180854,0.30658268971019004,demographic.race
+CPTAC,diagnoses.morphology__8140/3,0.3042734546274021,0.07321260511453653,0.3042734546274021,diagnoses.morphology
+CPTAC,"diagnoses.primary_diagnosis__Adenocarcinoma, NOS",0.3042734546274021,0.07321260511453653,0.3042734546274021,diagnoses.primary_diagnosis
+CPTAC,"diagnoses.primary_diagnosis__Renal cell carcinoma, NOS",0.2763191138917215,0.15927007023517253,0.2763191138917215,diagnoses.primary_diagnosis
+CPTAC,diagnoses.morphology__8312/3,0.2763191138917215,0.15927007023517253,0.2763191138917215,diagnoses.morphology
+CPTAC,diagnoses.primary_diagnosis__Glioblastoma,-0.256232415406555,0.060042484545674575,0.256232415406555,diagnoses.primary_diagnosis
+CPTAC,diagnoses.morphology__9440/3,-0.256232415406555,0.060042484545674575,0.256232415406555,diagnoses.morphology
+CPTAC,"diagnoses.tissue_or_organ_of_origin__Brain, NOS",-0.256232415406555,0.060042484545674575,0.256232415406555,diagnoses.tissue_or_organ_of_origin
+CPTAC,diagnoses.ajcc_pathologic_stage,0.2102152627080423,0.034172279420518634,0.2102152627080423,diagnoses.ajcc_pathologic_stage
+CPTAC,diagnoses.tumor_grade__G3,0.19554188892250685,0.09073194287747788,0.19554188892250685,diagnoses.tumor_grade
+CPTAC,age_years,0.16590309361818215,0.02519164610758939,0.16590309361818215,age_years
+CPTAC,diagnoses.ajcc_pathologic_m__missing,-0.15915324371645795,0.02783477868622495,0.15915324371645795,diagnoses.ajcc_pathologic_m
+CPTAC,diagnoses.primary_diagnosis__MISSING,0.15487896354722588,0.23026784258182423,0.15487896354722588,diagnoses.primary_diagnosis
+CPTAC,diagnoses.morphology__MISSING,0.15487896354722588,0.23026784258182423,0.15487896354722588,diagnoses.morphology
+CPTAC,"diagnoses.primary_diagnosis__Squamous cell carcinoma, NOS",0.1438078822630569,0.0695742097281021,0.1438078822630569,diagnoses.primary_diagnosis
+CPTAC,diagnoses.morphology__8070/3,0.1438078822630569,0.0695742097281021,0.1438078822630569,diagnoses.morphology
+CPTAC,diagnoses.tissue_or_organ_of_origin__MISSING,0.1291191280525506,0.2661980336316172,0.1291191280525506,diagnoses.tissue_or_organ_of_origin
+CPTAC,demographic.race__asian,-0.11131099783499221,0.20564792396489126,0.11131099783499221,demographic.race
+CPTAC,diagnoses.ajcc_pathologic_t,0.10533471525237928,0.020525919718346726,0.10533471525237928,diagnoses.ajcc_pathologic_t
+CPTAC,diagnoses.ajcc_pathologic_n,0.10530003336163851,0.01151128167606709,0.10530003336163851,diagnoses.ajcc_pathologic_n
+CPTAC,"diagnoses.tissue_or_organ_of_origin__Uterus, NOS",-0.10043817497639848,0.06626009127506403,0.10043817497639848,diagnoses.tissue_or_organ_of_origin
+CPTAC,"diagnoses.primary_diagnosis__Endometrioid adenocarcinoma, NOS",-0.10043817497639847,0.06626009127506403,0.10043817497639847,diagnoses.primary_diagnosis
+CPTAC,diagnoses.morphology__8380/3,-0.10043817497639847,0.06626009127506403,0.10043817497639847,diagnoses.morphology
+CPTAC,diagnoses.residual_disease__R1,0.08186357960058631,0.08961046155719178,0.08186357960058631,diagnoses.residual_disease
+CPTAC,demographic.gender__female,0.06888770426808097,0.028922742026540448,0.06888770426808097,demographic.gender
+CPTAC,demographic.gender__male,-0.0688877042676583,0.028922742026729863,0.0688877042676583,demographic.gender
+CPTAC,demographic.race__white,-0.05259646653566805,0.22719379710006088,0.05259646653566805,demographic.race
+CPTAC,"diagnoses.tissue_or_organ_of_origin__Larynx, NOS",0.02234400231235633,0.17150831185877108,0.02234400231235633,diagnoses.tissue_or_organ_of_origin
+CPTAC,demographic.race__other,0.02016275661097442,0.15010976306607796,0.02016275661097442,demographic.race
+CPTAC,diagnoses.ajcc_pathologic_n__missing,0.00902634310325976,0.08802954686136276,0.00902634310325976,diagnoses.ajcc_pathologic_n
+CPTAC,"diagnoses.tissue_or_organ_of_origin__Lung, NOS",0.0048169927608627235,0.08889046036047321,0.0048169927608627235,diagnoses.tissue_or_organ_of_origin
+CPTAC,demographic.gender__MISSING,0.0,0.0,0.0,demographic.gender
+CPTAC,age_years__missing,0.0,0.0,0.0,age_years
+TARGET_AML,demographic.race__american indian or alaska native,-0.3566126831599278,0.3101140984233089,0.3566126831599278,demographic.race
+TARGET_AML,demographic.race__black or african american,0.32908606978046995,0.12612861089020055,0.32908606978046995,demographic.race
+TARGET_AML,demographic.race__asian,0.15334524965454638,0.132086709424318,0.15334524965454638,demographic.race
+TARGET_AML,demographic.race__MISSING,-0.1192893337404676,0.11733239653172087,0.1192893337404676,demographic.race
+TARGET_AML,demographic.age_at_index,-0.11392860108240296,0.020552452937089783,0.11392860108240296,demographic.age_at_index
+TARGET_AML,demographic.ethnicity__not hispanic or latino,-0.07932102157123855,0.042355843966245164,0.07932102157123855,demographic.ethnicity
+TARGET_AML,demographic.ethnicity__hispanic or latino,0.06908495462915039,0.030840925239498544,0.06908495462915039,demographic.ethnicity
+TARGET_AML,demographic.gender__female,-0.0633884273593042,0.03441999578173355,0.0633884273593042,demographic.gender
+TARGET_AML,demographic.gender__male,0.06338842735914081,0.034419995780937206,0.06338842735914081,demographic.gender
+TARGET_AML,demographic.ethnicity__MISSING,0.010236066939417804,0.07272450246085925,0.010236066939417804,demographic.ethnicity
+TARGET_AML,demographic.race__white,-0.006529302535553122,0.08288215950969853,0.006529302535553122,demographic.race
+TARGET_AML,demographic.age_at_index__missing,0.0,0.0,0.0,demographic.age_at_index
+TARGET_AML,demographic.gender__MISSING,0.0,0.0,0.0,demographic.gender
