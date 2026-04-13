@@ -37,12 +37,13 @@ set -euo pipefail
 #   e.g. ./scripts/train_binned_HVG_models.sh 0 TCGA linear global_linear per_sample_linear
 # ============================================================
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_DIR="logs/hvg_binning"
 mkdir -p "$LOG_DIR"
 
 MAX_PARALLEL="${MAX_PARALLEL:-8}"
 CONFIG_PATH="${CONFIG_PATH:-./configs/all_models.yaml}"
-HP_PATH="${HP_PATH:-/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results/all_aggregated_hps.json}"
+HP_PATH="${HP_PATH:-${REPO_ROOT}/hp_results/all_aggregated_hps.json}"
 TRAIN_SCRIPT="train.train_binned_HVG_model"
 
 # Fixed choices
@@ -78,7 +79,7 @@ run_dataset() {
 
     export CUDA_VISIBLE_DEVICES="$GPU_ID"
 
-    local OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs/${DATASET}/survival/PFS/binned_HVG_ablation"
+    local OUT_BASE="${REPO_ROOT}/model_outputs/${DATASET}/survival/PFS/binned_HVG_ablation"
     local running=0
 
     echo "============================================================"

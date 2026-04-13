@@ -1,16 +1,20 @@
-import os 
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
-from pathlib import Path
+import os
 import pickle
-import anndata
-from anndata import AnnData
-import anndata as ad
+import yaml
 from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
+
+import numpy as np
+import pandas as pd
+import anndata
+from anndata import AnnData
+import anndata as ad
+from tqdm import tqdm
 import matplotlib.pyplot as plt
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
 
 def pickle_data(data, path):
 
@@ -106,7 +110,7 @@ def build_hartwig_filtered_anndata_unordered(
 if __name__ == "__main__":
     # Construct adata
     print("Constructing AnnData from Hartwig raw files...")
-    raw_dir = "/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/raw"
+    raw_dir = _data_paths["external_data"]["Hartwig_raw_dir"]
 
     adata = build_hartwig_filtered_anndata_unordered(
         raw_dir=raw_dir,
@@ -126,7 +130,7 @@ if __name__ == "__main__":
     print(f"Constructed AnnData with shape {filtered_adata.shape}")
     print(filtered_adata)
     
-    filtered_adata.write_h5ad("/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/RNA/Hartwig_bulk_RNA_processed.h5ad")
+    filtered_adata.write_h5ad(str(REPO_ROOT / "data" / "Hartwig" / "RNA" / "Hartwig_bulk_RNA_processed.h5ad"))
     print("Saved untransformed AnnData to h5ad.")
     
     # Construct log-transformed filtered_adata
@@ -136,7 +140,7 @@ if __name__ == "__main__":
     print(f"Constructed log-transformed AnnData with shape {log_adata.shape}")
     print(log_adata)
     
-    log_adata.write_h5ad("/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/RNA/Hartwig_bulk_RNA_processed_log1p.h5ad")
+    log_adata.write_h5ad(str(REPO_ROOT / "data" / "Hartwig" / "RNA" / "Hartwig_bulk_RNA_processed_log1p.h5ad"))
     print("Saved log-transformed AnnData to h5ad.")
     
     

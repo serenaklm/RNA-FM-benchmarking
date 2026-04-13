@@ -1,12 +1,16 @@
 import argparse
 import json
 import pickle
+import yaml
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.metrics import concordance_index_censored
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
 
 
 # ----------------------- Clinical cleaning ----------------------------------
@@ -27,8 +31,8 @@ def clean_clinical(df):
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_splits", type=int, default=5)
 parser.add_argument("--alpha", type=float, default=0.1)
-parser.add_argument("--base", type=str, default="/data/rbg/users/ashyamal/RNA-FM-benchmarking")
-parser.add_argument("--out_csv", type=str, default="/data/rbg/users/ashyamal/RNA-FM-benchmarking/benchmarking_results/clinical_baseline_results.csv")
+parser.add_argument("--base", type=str, default=str(REPO_ROOT))
+parser.add_argument("--out_csv", type=str, default=str(REPO_ROOT / "benchmarking_results" / "clinical_baseline_results.csv"))
 args = parser.parse_args()
 
 BASE = args.base
@@ -104,7 +108,7 @@ def load_dataset(dataset_name):
         with open(f"{BASE}/data/RNA_embeddings/CPTAC_processed.pkl", "rb") as f:
             patient_data = pickle.load(f)
         clinical = clean_clinical(pd.read_csv(
-            "/data/rbg/shared/datasets/CPTAC/clinical/clinical.tsv", sep="\t", low_memory=False
+            _data_paths["external_data"]["CPTAC_clinical_tsv"], sep="\t", low_memory=False
         ))
         clinical_dedup = clinical.drop_duplicates(subset="cases.case_id").set_index("cases.case_id")
         return patient_data, clinical_dedup, f"{BASE}/splits/CPTAC", None
@@ -115,7 +119,7 @@ def load_dataset(dataset_name):
         with open(f"{BASE}/data/Hartwig/sample_to_patient_mapping.pkl", "rb") as f:
             sample_to_patient = pickle.load(f)
         metadata = pd.read_csv(
-            "/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/metadata.tsv", sep="\t"
+            _data_paths["external_data"]["Hartwig_metadata_tsv"], sep="\t"
         )
         metadata["biopsyDate"] = pd.to_datetime(metadata["biopsyDate"])
         metadata["age_at_biopsy"] = metadata["biopsyDate"].dt.year - metadata["birthYear"]

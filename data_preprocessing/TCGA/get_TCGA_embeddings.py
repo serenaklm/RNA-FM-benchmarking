@@ -6,6 +6,8 @@ import pandas as pd
 from pathlib import Path
 from typing import Dict, Optional
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
 # Import from data_preprocessing package
 from ..preprocess_utils import (
     load_foundation_model_embeddings,
@@ -250,7 +252,7 @@ def preprocess_tcga(
         print("\n[6/7] Skipping foundation model embeddings (create_FM_embeddings=False)")
     
     # PCA root for this dataset
-    pca_root = Path(f"/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/TCGA/PCA/")
+    pca_root = REPO_ROOT / "data" / "TCGA" / "PCA"
     print("\n[6a/7] Loading PCA embeddings...")
     all_pca = load_pca_embeddings(pca_root, patient_ids, dims=[50, 100])
     print(f"   PCA_50:  {len(all_pca.get('PCA_50', {}))} embeddings")
@@ -267,7 +269,7 @@ def preprocess_tcga(
     print(f"   Unique drug MoAs (vocab size): {len(drug_moa_vocab)}")
 
     # Save vocab for downstream reference
-    moa_vocab_path = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/TCGA/TCGA_drug_moa_vocab.pkl"
+    moa_vocab_path = str(REPO_ROOT / "data" / "TCGA" / "TCGA_drug_moa_vocab.pkl")
     pickle_data(drug_moa_vocab, moa_vocab_path)
     print(f"   Saved drug MoA vocab to {moa_vocab_path}")
     

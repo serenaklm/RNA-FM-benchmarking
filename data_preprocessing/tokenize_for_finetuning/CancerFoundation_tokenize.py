@@ -26,13 +26,17 @@ import os
 import sys
 import pickle
 import argparse
+import yaml
+from pathlib import Path
 
 import anndata
 import numpy as np
 import scanpy as sc
 from tqdm import tqdm
 
-CF_DIR = "/data/rbg/users/ashyamal/CancerFoundation"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
+CF_DIR = _data_paths["model_repos"]["CancerFoundation"]
 sys.path.insert(0, CF_DIR)
 
 from model.vocab import GeneVocab

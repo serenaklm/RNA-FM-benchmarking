@@ -3,7 +3,10 @@ import yaml
 import argparse
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import torch
 torch.set_float32_matmul_precision("high")
@@ -23,8 +26,8 @@ from pytorch_modules.models.survival_models import RNA_SurvivalModel
 
 # COMPASS requires filtering to patients with a TCGA ID mapping
 COMPASS_MAPPING_PATHS = {
-    "CPTAC":   "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CPTAC/id_to_tcga_mapping.pkl",
-    "Hartwig": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/id_to_tcga_mapping.pkl",
+    "CPTAC":   str(REPO_ROOT / "data" / "CPTAC" / "id_to_tcga_mapping.pkl"),
+    "Hartwig": str(REPO_ROOT / "data" / "Hartwig" / "id_to_tcga_mapping.pkl"),
 }
 
 

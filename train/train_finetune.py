@@ -13,6 +13,10 @@ import yaml
 import argparse
 import json
 from datetime import datetime
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
 
 import torch
 torch.set_float32_matmul_precision("high")
@@ -111,7 +115,7 @@ def main(args):
     elif fm_name == "CancerFoundation":
         import sys
         from functools import partial
-        CF_DIR = "/data/rbg/users/ashyamal/CancerFoundation"
+        CF_DIR = _data_paths["model_repos"]["CancerFoundation"]
         sys.path.insert(0, CF_DIR)
         from model.vocab import GeneVocab as CFGeneVocab
         vocab_file = os.path.join(CF_DIR, "model/assets/vocab.json")

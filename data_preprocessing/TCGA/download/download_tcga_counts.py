@@ -1,12 +1,16 @@
 import os
 import json
+import yaml
 import requests
 import pandas as pd
+from pathlib import Path
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing as mp
 
-outdir = "/data/rbg/users/ashyamal/data/new_TCGA_RNAseq_STAR_counts/"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
+outdir = _data_paths["external_data"]["TCGA_star_counts_dir"]
 os.makedirs(outdir, exist_ok=True)
 
 # TCGA project list (33 projects)

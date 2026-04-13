@@ -19,9 +19,14 @@ import yaml
 import argparse
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import numpy as np
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
+
 import pandas as pd
 import torch
 torch.set_float32_matmul_precision("high")
@@ -125,8 +130,8 @@ FEATURE_SPECS = {
 # Paths to clinical TSVs (absolute; TCGA/TARGET_AML use base-relative paths)
 CLINICAL_PATHS = {
     "TCGA":       "{base}/data/TCGA/clinical/clinical.tsv",
-    "CPTAC":      "/data/rbg/shared/datasets/CPTAC/clinical/clinical.tsv",
-    "Hartwig":    "/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/metadata.tsv",
+    "CPTAC":      _data_paths["external_data"]["CPTAC_clinical_tsv"],
+    "Hartwig":    _data_paths["external_data"]["Hartwig_metadata_tsv"],
     "TARGET_AML": "{base}/data/TARGET_AML/clinical/clinical.tsv",
 }
 CLINICAL_ID_COLS = {
@@ -617,7 +622,7 @@ if __name__ == "__main__":
                         choices=["Cox", "CIndex"])
     parser.add_argument("--hp_path",      type=str, required=True, default="Not provided")
     parser.add_argument("--clinical_base", type=str,
-                        default="/data/rbg/users/ashyamal/RNA-FM-benchmarking",
+                        default=str(REPO_ROOT),
                         help="Base directory for resolving relative clinical TSV paths")
     parser.add_argument("--min_cat_freq", type=int, default=10,
                         help="Min train-set frequency to keep a categorical value")

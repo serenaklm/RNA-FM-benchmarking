@@ -5,14 +5,18 @@ in parallel and save each to a CSV file.
 """
 
 import os
+import yaml
 import requests
 import pandas as pd
+from pathlib import Path
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 
 # --- Configuration ---
-OUTPUT_DIR = "/data/rbg/users/ashyamal/data/expanded_TCGA_clinical_data"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
+OUTPUT_DIR = _data_paths["external_data"]["TCGA_clinical_expanded_dir"]
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 N_WORKERS = 8
 

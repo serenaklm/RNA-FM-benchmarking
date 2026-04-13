@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source /data/rbg/users/ashyamal/miniconda3/etc/profile.d/conda.sh
+source "$(conda info --base)/etc/profile.d/conda.sh"
 
 DATASET=""
 GPU=""
@@ -44,7 +44,8 @@ python BulkRNABert.py --data_set "$DATASET" --just_preprocess_data \
 # ---------- BulkFormer (bulkformer env, no GPU needed) ----------
 echo ""
 echo "===== BulkFormer ====="
-cd "${REPO_ROOT}/../BulkFormer/BulkFormer"
+BULKFORMER_DIR=$(python -c "import yaml; print(yaml.safe_load(open('${REPO_ROOT}/configs/data_paths.yaml'))['model_repos']['BulkFormer'])")
+cd "$BULKFORMER_DIR"
 conda activate bulkformer
 python get_BulkFormer_embeddings.py --data_set "$DATASET" --just_preprocess_data \
   2>&1 | tee "${DATA_LOG_DIR}/BulkFormer.log"
@@ -78,7 +79,8 @@ python STATE.py --data_set "$DATASET" --action process_hvg --just_preprocess_dat
 # ---------- CancerFoundation (cancerfoundation env, no GPU needed) ----------
 echo ""
 echo "===== CancerFoundation ====="
-cd "${REPO_ROOT}/../CancerFoundation/tutorial"
+CF_DIR=$(python -c "import yaml; print(yaml.safe_load(open('${REPO_ROOT}/configs/data_paths.yaml'))['model_repos']['CancerFoundation'])")
+cd "${CF_DIR}/tutorial"
 conda activate cancerfoundation
 python CancerFoundation.py --data_set "$DATASET" --just_preprocess_data \
   2>&1 | tee "${DATA_LOG_DIR}/CancerFoundation.log"

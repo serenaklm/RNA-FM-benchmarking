@@ -15,6 +15,7 @@
 import os
 import re
 import argparse
+import yaml
 from pathlib import Path
 
 import numpy as np
@@ -23,6 +24,8 @@ import torch
 import pytorch_lightning as pl
 from sksurv.metrics import concordance_index_censored
 from tqdm import tqdm
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 from pytorch_modules.utils.utils import load_json, load_pickle
 from pytorch_modules.models.survival_models import RNA_SurvivalModel
@@ -183,7 +186,7 @@ def main(args):
     endpoint = args.endpoint
 
     base = (
-        Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/clinical_concat_model_outputs")
+        REPO_ROOT / "clinical_concat_model_outputs"
         / dataset / "survival" / endpoint
     )
     results_dir = Path(args.results_dir) if args.results_dir is not None else base
@@ -298,7 +301,7 @@ if __name__ == "__main__":
     p.add_argument("--out_csv",     default=None, help="Where to write the CSV")
 
     p.add_argument("--clinical_base", type=str,
-                   default="/data/rbg/users/ashyamal/RNA-FM-benchmarking",
+                   default=str(REPO_ROOT),
                    help="Base directory for resolving clinical TSV paths (must match training)")
     p.add_argument("--min_cat_freq", type=int, default=10,
                    help="Must match value used during training (default: 10)")

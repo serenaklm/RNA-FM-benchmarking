@@ -26,11 +26,12 @@ TRAIN_SCRIPT="train.train_finetune"
 # Allows the CUDA allocator to use non-contiguous memory segments,
 # avoiding OOM due to fragmentation when large tensors (e.g. attention
 # matrices) are repeatedly allocated and freed.
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 
-OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs_finetune/${DATASET}/survival/PFS"
+OUT_BASE="${REPO_ROOT}/model_outputs_finetune/${DATASET}/survival/PFS"
 
-LOG_DIR="/data/rbg/users/ashyamal/RNA-FM-benchmarking/logs/finetune/${DATASET}/${FM_NAME}"
+LOG_DIR="${REPO_ROOT}/logs/finetune/${DATASET}/${FM_NAME}"
 mkdir -p "$LOG_DIR"
 
 case "$DATASET" in

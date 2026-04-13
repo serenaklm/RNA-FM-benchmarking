@@ -24,6 +24,8 @@ import os
 import re
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
@@ -211,7 +213,7 @@ def main(args):
     dataset = args.dataset
 
     base = (
-        Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs")
+        REPO_ROOT / "model_outputs"
         / dataset / "survival" / "PFS" / "binned_HVG_ablation"
     )
     results_dir = Path(args.results_dir) if args.results_dir else base

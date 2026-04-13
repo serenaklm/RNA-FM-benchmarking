@@ -20,13 +20,17 @@ import os
 import sys
 import pickle
 import argparse
+import yaml
+from pathlib import Path
 
 import anndata as ad
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-sys.path.insert(0, "/data/rbg/users/ashyamal/COMPASS")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
+sys.path.insert(0, _data_paths["model_repos"]["COMPASS"])
 from compass import loadcompass
 
 

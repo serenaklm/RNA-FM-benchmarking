@@ -69,3 +69,6 @@ wandb/
 *.tmp
 *.bak
 .env
+configs/data_paths.yaml
+
+

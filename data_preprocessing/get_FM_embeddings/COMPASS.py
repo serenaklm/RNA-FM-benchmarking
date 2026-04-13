@@ -5,10 +5,13 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 import os
+from pathlib import Path
 from tqdm import tqdm
 import pickle
 import argparse
 import json
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Utils
 def load_pickle(path):
@@ -37,9 +40,9 @@ print(f"Reading {args.data_set} data...")
 adata = ad.read_h5ad(adata_path[args.data_set])
 
 data_sets_with_cancer_info = {
-    "CPTAC": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CPTAC/obs_to_tcga_mapping.pkl",
-    "ICGC": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/ICGC/id_to_tcga_mapping.pkl",
-    "Hartwig": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/id_to_tcga_mapping.pkl"
+    "CPTAC": str(REPO_ROOT / "data" / "CPTAC" / "obs_to_tcga_mapping.pkl"),
+    "ICGC": str(REPO_ROOT / "data" / "ICGC" / "id_to_tcga_mapping.pkl"),
+    "Hartwig": str(REPO_ROOT / "data" / "Hartwig" / "id_to_tcga_mapping.pkl")
 }
 
 if args.data_set in data_sets_with_cancer_info:

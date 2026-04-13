@@ -30,10 +30,11 @@ SEEDS=(37 42)
 SPLITS=(0 1 2 3 4)
 FM_KEYS=(BulkFormer BulkRNABert COMPASS scGPT STATE CancerFoundation RNA_seq)
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TRAIN_SCRIPT="train.train_RNA_model_clinical"
 CONFIG_PATH="${CONFIG_PATH:-./configs/all_models.yaml}"
-HP_PATH="/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results/all_aggregated_hps.json"
-CLINICAL_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking"
+HP_PATH="${REPO_ROOT}/hp_results/all_aggregated_hps.json"
+CLINICAL_BASE="${REPO_ROOT}"
 
 mkdir -p logs
 
@@ -45,7 +46,7 @@ run_worker() {
 
     export CUDA_VISIBLE_DEVICES="$GPU_ID"
 
-    local OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/clinical_concat_model_outputs/${DATASET}/survival/PFS"
+    local OUT_BASE="${REPO_ROOT}/clinical_concat_model_outputs/${DATASET}/survival/PFS"
     local MAX_PARALLEL=8
     local job_count=0
 

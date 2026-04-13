@@ -26,6 +26,7 @@ EXPERIMENT="$4"
 ARCH="$5"
 LOSS_NAME="$6"    # still passed; python can ignore for response
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export CUDA_VISIBLE_DEVICES="$GPU_ID"
 
 SEED="${SEED:-37}"
@@ -46,7 +47,7 @@ TRAIN_SCRIPT="train.train_RNA_model"
 CONFIG_PATH="${CONFIG_PATH:-./configs/all_models.yaml}"
 
 # Tuned HPs path (override with env HP_PATH)
-HP_PATH="/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results/all_aggregated_hps.json"
+HP_PATH="${REPO_ROOT}/hp_results/all_aggregated_hps.json"
 
 # -----------------------
 # Validate inputs
@@ -78,9 +79,9 @@ fi
 # -----------------------
 # (Task-specific; survival includes endpoint)
 if [[ "$TASK" == "survival" ]]; then
-  OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs/${DATASET}/survival/PFS"
+  OUT_BASE="${REPO_ROOT}/model_outputs/${DATASET}/survival/PFS"
 else
-  OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs/${DATASET}/response"
+  OUT_BASE="${REPO_ROOT}/model_outputs/${DATASET}/response"
 fi
 
 # -----------------------

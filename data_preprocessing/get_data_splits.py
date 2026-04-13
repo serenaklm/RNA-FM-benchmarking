@@ -1,4 +1,4 @@
-import os 
+import os
 import random
 from pathlib import Path
 from sklearn.model_selection import train_test_split
@@ -6,6 +6,8 @@ import pickle
 import argparse
 import numpy as np
 from collections import Counter
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 SEED_IDX = {0: 17,
             1: 37,
@@ -298,7 +300,7 @@ def split_Hartwig(
     val_ratio=0.15,
     test_ratio=0.15,
     stratify_key="cancer_type",
-    sample_to_patient_path="/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/sample_to_patient_dict.pkl",
+    sample_to_patient_path=str(REPO_ROOT / "data" / "Hartwig" / "sample_to_patient_dict.pkl"),
 ):
     data = load_pickle(data_path)
     sample_to_patient = load_pickle(sample_to_patient_path)

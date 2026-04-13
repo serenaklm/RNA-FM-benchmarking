@@ -20,6 +20,7 @@ modelled explicitly.
 """
 import argparse
 import pickle
+import yaml
 from pathlib import Path
 from collections import defaultdict
 
@@ -27,6 +28,9 @@ import numpy as np
 import pandas as pd
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from sksurv.metrics import concordance_index_censored
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
 
 
 # ---------------------------------------------------------------------------
@@ -153,7 +157,7 @@ def load_dataset(dataset_name, base):
         with open(f"{base}/data/RNA_embeddings/CPTAC_processed.pkl", "rb") as f:
             patient_data = pickle.load(f)
         clinical = clean_df(pd.read_csv(
-            "/data/rbg/shared/datasets/CPTAC/clinical/clinical.tsv", sep="\t", low_memory=False))
+            _data_paths["external_data"]["CPTAC_clinical_tsv"], sep="\t", low_memory=False))
         clinical_dedup = (clinical.drop_duplicates(subset="cases.case_id")
                           .set_index("cases.case_id"))
         # age_at_diagnosis is in days in GDC format
@@ -169,7 +173,7 @@ def load_dataset(dataset_name, base):
         with open(f"{base}/data/Hartwig/sample_to_patient_mapping.pkl", "rb") as f:
             sample_to_patient = pickle.load(f)
         metadata = pd.read_csv(
-            "/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/metadata.tsv", sep="\t")
+            _data_paths["external_data"]["Hartwig_metadata_tsv"], sep="\t")
         metadata["biopsyDate"]   = pd.to_datetime(metadata["biopsyDate"])
         metadata["age_at_biopsy"] = metadata["biopsyDate"].dt.year - metadata["birthYear"]
         clinical_dedup = (metadata.drop_duplicates(subset="sampleId")
@@ -460,7 +464,7 @@ def main():
     parser.add_argument("--min_cat_freq", type=int,   default=10,
                         help="Min train-set frequency to keep a category (else → OTHER)")
     parser.add_argument("--base",  type=str,
-                        default="/data/rbg/users/ashyamal/RNA-FM-benchmarking")
+                        default=str(REPO_ROOT))
     parser.add_argument("--out_dir", type=str, default=None,
                         help="Output directory (default: <base>/benchmarking_results/clinical)")
     args = parser.parse_args()

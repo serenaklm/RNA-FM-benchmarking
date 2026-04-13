@@ -13,11 +13,15 @@
 import os
 import re
 import argparse
+import yaml
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import torch
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
 import pytorch_lightning as pl
 from sksurv.metrics import concordance_index_censored
 from tqdm import tqdm
@@ -136,7 +140,7 @@ def eval_one_folder(model_folder: Path, dataset: str, use_gpu: bool, min_n: int,
     elif fm_name == "CancerFoundation":
         import sys
         from functools import partial
-        CF_DIR = "/data/rbg/users/ashyamal/CancerFoundation"
+        CF_DIR = _data_paths["model_repos"]["CancerFoundation"]
         sys.path.insert(0, CF_DIR)
         from model.vocab import GeneVocab as CFGeneVocab
         vocab_file = os.path.join(CF_DIR, "model/assets/vocab.json")
@@ -214,7 +218,7 @@ def main(args):
     endpoint = args.endpoint
 
     base = (
-        Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs_finetune")
+        REPO_ROOT / "model_outputs_finetune"
         / dataset / "survival" / endpoint
     )
     results_dir = Path(args.results_dir) if args.results_dir else base

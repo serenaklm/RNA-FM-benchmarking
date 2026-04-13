@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+import yaml
 from sklearn.metrics import cohen_kappa_score, f1_score
 from sklearn.preprocessing import LabelEncoder
 from tqdm import tqdm
@@ -30,7 +31,9 @@ from tqdm import tqdm
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-BASE = "/data/rbg/users/ashyamal/RNA-FM-benchmarking"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+BASE = str(REPO_ROOT)
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
 
 DATASETS = ["TCGA", "CPTAC", "Hartwig", "TARGET_AML"]
 
@@ -116,7 +119,7 @@ def load_dataset(dataset_name):
         with open(f"{BASE}/data/RNA_embeddings/CPTAC_processed.pkl", "rb") as f:
             patient_data = pickle.load(f)
         clinical = clean_clinical(pd.read_csv(
-            "/data/rbg/shared/datasets/CPTAC/clinical/clinical.tsv", sep="\t", low_memory=False
+            _data_paths["external_data"]["CPTAC_clinical_tsv"], sep="\t", low_memory=False
         ))
         clinical_dedup = clinical.drop_duplicates(subset="cases.case_id").set_index("cases.case_id")
         return patient_data, clinical_dedup, f"{BASE}/splits/CPTAC", None
@@ -127,7 +130,7 @@ def load_dataset(dataset_name):
         with open(f"{BASE}/data/Hartwig/sample_to_patient_mapping.pkl", "rb") as f:
             sample_to_patient = pickle.load(f)
         metadata = pd.read_csv(
-            "/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/metadata.tsv", sep="\t"
+            _data_paths["external_data"]["Hartwig_metadata_tsv"], sep="\t"
         )
         clinical_dedup = metadata.drop_duplicates(subset="sampleId").set_index("sampleId")
         return patient_data, clinical_dedup, f"{BASE}/splits/Hartwig", sample_to_patient

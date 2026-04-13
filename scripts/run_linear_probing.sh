@@ -11,7 +11,8 @@ set -euo pipefail
 #   ./scripts/run_linear_probing.sh
 # ============================================================
 
-BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BASE="${REPO_ROOT}"
 OUT_DIR="$BASE/benchmarking_results/linear_probe"
 TMP_DIR="$OUT_DIR/tmp"
 FINAL_CSV="$OUT_DIR/linear_probing_results.csv"

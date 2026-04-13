@@ -1,16 +1,21 @@
 import os
 import pickle
+import argparse
+import json
+import subprocess
+import shlex
+import yaml
+from pathlib import Path
+
 import numpy as np
 import scanpy as sc
 import pandas as pd
 import anndata as ad
-from pathlib import Path
-import subprocess, shlex
 from tqdm import tqdm
-import argparse
-import json
 
-os.environ["HF_HOME"] = "/data/rbg/users/ashyamal/huggingface_cache"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
+os.environ["HF_HOME"] = _data_paths["huggingface_cache"]
 
 import torch
 from huggingface_hub import snapshot_download
@@ -128,8 +133,8 @@ elif args.action == 'extract_embeddings':
 Training command:
 
 state emb transform \
-  --model-folder /data/rbg/users/ashyamal/RNA-FM-benchmarking/data/STATE/SE-600M \
-  --input /data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CALGB/RNA/CALGB_40603_bulk_RNA_processed_log1p_HVG.h5ad \
-  --output /data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CALGB/RNA/FM_embeddings/STATE/CALGB_STATE_emb.h5ad
+  --model-folder <REPO_ROOT>/data/STATE/SE-600M \
+  --input <REPO_ROOT>/data/CALGB/RNA/CALGB_40603_bulk_RNA_processed_log1p_HVG.h5ad \
+  --output <REPO_ROOT>/data/CALGB/RNA/FM_embeddings/STATE/CALGB_STATE_emb.h5ad
 
 '''

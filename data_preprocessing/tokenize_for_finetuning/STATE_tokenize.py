@@ -23,13 +23,17 @@ import os
 import sys
 import pickle
 import argparse
+import yaml
+from pathlib import Path
 
 import numpy as np
 import anndata
 from tqdm import tqdm
 
-STATE_REPO_DIR = "/data/rbg/users/ashyamal/state/src"
-STATE_MODEL_DIR = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/STATE/SE-600M"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
+STATE_REPO_DIR = _data_paths["model_repos"]["STATE_src"]
+STATE_MODEL_DIR = str(REPO_ROOT / "data" / "STATE" / "SE-600M")
 
 PAD_LENGTH = 2048   # cfg.dataset.pad_length
 

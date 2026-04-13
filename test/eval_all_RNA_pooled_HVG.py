@@ -14,6 +14,8 @@ import numpy as np
 import pandas as pd
 import torch
 import pytorch_lightning as pl
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 from sksurv.metrics import concordance_index_censored
 from sklearn.metrics import roc_auc_score, f1_score
 from tqdm import tqdm
@@ -295,7 +297,7 @@ def main(args):
     task = args.task
 
     # HVG_pooling subdirectory
-    base_root = Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs/HVG_pooling") / dataset
+    base_root = REPO_ROOT / "model_outputs" / "HVG_pooling" / dataset
 
     if task == "survival":
         endpoint = args.endpoint

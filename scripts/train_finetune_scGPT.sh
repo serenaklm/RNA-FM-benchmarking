@@ -23,13 +23,14 @@ GPUS=(3 4 5 6 7)
 CONFIG_PATH="${CONFIG_PATH:-./configs/finetune.yaml}"
 TRAIN_SCRIPT="train.train_finetune"
 
-PYTHON="/data/rbg/users/ashyamal/miniconda3/envs/scgpt_env/bin/python"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHON="${PYTHON:-python}"
 
 export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 
-OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs_finetune/${DATASET}/survival/PFS"
+OUT_BASE="${REPO_ROOT}/model_outputs_finetune/${DATASET}/survival/PFS"
 
-LOG_DIR="/data/rbg/users/ashyamal/RNA-FM-benchmarking/logs/finetune/${DATASET}/${FM_NAME}"
+LOG_DIR="${REPO_ROOT}/logs/finetune/${DATASET}/${FM_NAME}"
 mkdir -p "$LOG_DIR"
 
 case "$DATASET" in

@@ -13,13 +13,17 @@ Example:
 import os
 import pickle
 import argparse
+import yaml
+from pathlib import Path
 
 import anndata
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-os.environ["HF_HOME"] = "/data/rbg/users/ashyamal/huggingface_cache"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_data_paths = yaml.safe_load(open(REPO_ROOT / "configs" / "data_paths.yaml"))
+os.environ["HF_HOME"] = _data_paths["huggingface_cache"]
 
 from transformers import AutoConfig, AutoTokenizer
 
