@@ -21,12 +21,16 @@ def pickle_data(data, path):
         pickle.dump(data, f)
         
 # Get args
-parser = argparse.ArgumentParser(description='Generate scGPT embeddings')
-parser.add_argument('--data_set', type=str, required=True, choices=['TCGA', 'CALGB', 'CPTAC', 'Hartwig', 'ICGC', 'TARGET_AML'],
-                help='Dataset to process: TCGA, CALGB, CPTAC, Hartwig, ICGC, or TARGET_AML')
+parser = argparse.ArgumentParser(description='Generate STATE embeddings')
+parser.add_argument('--data_set', type=str, required=True,
+                help='Dataset to process (e.g. TCGA, CPTAC, Hugo, Riaz, Rose, ...)')
 parser.add_argument('--action', type=str, required=True, choices=['process_hvg', 'extract_embeddings'],
                     help='Action to perform: process_hvg or extract_embeddings')
 parser.add_argument('--just_preprocess_data', action='store_true')
+parser.add_argument(
+    '--data_dir', type=str, default=None,
+    help='Override data directory. If set, reads/writes from {data_dir}/RNA/.',
+)
 args = parser.parse_args()
 
 print(f"Using data set: {args.data_set}")
@@ -38,9 +42,12 @@ if args.action == 'process_hvg':
     protein_emb_path = "../../data/STATE/SE-600M/protein_embeddings.pt"
     protein_emb = torch.load(protein_emb_path)
     captured_genes = list(protein_emb.keys())
-    
+
     key = f"{args.data_set}_bulk_RNA_processed_log1p"
-    data_folder = f"../../data/{args.data_set}/RNA"
+    if args.data_dir:
+        data_folder = os.path.join(args.data_dir, "RNA")
+    else:
+        data_folder = f"../../data/{args.data_set}/RNA"
 
     RNAseq_info = ad.read_h5ad(os.path.join(data_folder, f"{key}.h5ad"))
     data_output_path = os.path.join(data_folder, f"{key}_HVG.h5ad")
@@ -55,7 +62,10 @@ if args.action == 'process_hvg':
     print(f"There are {len(selected_genes)}")
     RNAseq_hvg = RNAseq_info[:, selected_genes]
     
-    output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/STATE/"
+    if args.data_dir:
+        output_folder = os.path.join(args.data_dir, "RNA", "FM_embeddings", "STATE") + "/"
+    else:
+        output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/STATE/"
     os.makedirs(output_folder, exist_ok=True)
 
     expr_array = RNAseq_hvg.X
@@ -89,28 +99,24 @@ if args.action == 'process_hvg':
     RNAseq_hvg.write(data_output_path)
     
 elif args.action == 'extract_embeddings':
-    output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/STATE/"
+    if args.data_dir:
+        output_folder = os.path.join(args.data_dir, "RNA", "FM_embeddings", "STATE") + "/"
+    else:
+        output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/STATE/"
 
     STATE_emb_info = ad.read_h5ad(os.path.join(output_folder, f"{args.data_set}_STATE_emb.h5ad"))
     STATE_emb = STATE_emb_info.obsm["X_state"]
 
-    obs = 'cases.submitter_id' if args.data_set == 'TCGA' else 'patient_id'
-    patient_id = STATE_emb_info.obs[obs].tolist()
-    
-    '''
-    for i, id_ in tqdm(enumerate(patient_id)):
-
-        current_output_path = os.path.join(output_folder, f"{id_}.pkl")
-        emb = STATE_emb[i:i+1][0]
-        pickle_data(emb, current_output_path)
-    '''
-    
-    # Choose IDs to save by (aliquots for TARGET_AML, patient-level otherwise)
+    # Choose IDs to save by
     if args.data_set == "TARGET_AML":
-        ids = STATE_emb_info.obs_names.astype(str).tolist()   # e.g. TARGET-20-XXXXXX-09A
+        ids = STATE_emb_info.obs_names.astype(str).tolist()
+    elif args.data_set == "TCGA":
+        ids = STATE_emb_info.obs['cases.submitter_id'].astype(str).tolist()
+    elif 'patient_id' in STATE_emb_info.obs.columns:
+        ids = STATE_emb_info.obs['patient_id'].astype(str).tolist()
     else:
-        obs = 'cases.submitter_id' if args.data_set == 'TCGA' else 'patient_id'
-        ids = STATE_emb_info.obs[obs].astype(str).tolist()
+        # ICI cohorts: obs_names are the patient/sample IDs
+        ids = STATE_emb_info.obs_names.astype(str).tolist()
 
     print(f"Computing embeddings for {len(ids)} patients/samples")
     print("Sanmple IDs:", ids[:5])

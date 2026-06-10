@@ -24,6 +24,7 @@ data:
 model:
   lr: 5e-4
   weight_decay: 5e-6
+  pos_weight: 3.05   # NR/R ratio across all ICI cohorts (473/155); ignored by survival models
 
   ResidualMLP:
     hidden_dim: 512

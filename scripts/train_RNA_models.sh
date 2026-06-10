@@ -38,6 +38,7 @@ TEST_LIST_HVG=(50)
 N_HVGS_LIST_1=(500 729 1250)
 N_HVGS_LIST_2=(18 50 5000)
 N_HVGS_LIST_3=(132 10000)
+N_HVGS_LIST_4=(44 256 512 640 2058)   # matches FM embedding dimensionalities
 
 # Python module path (your new script)
 TRAIN_SCRIPT="train.train_RNA_model"
@@ -130,6 +131,10 @@ case "$EXPERIMENT" in
     KEYS=("${HVG_KEYS[@]}")
     N_HVGS_LIST=("${N_HVGS_LIST_3[@]}")
     ;;
+  HVG4)
+    KEYS=("${HVG_KEYS[@]}")
+    N_HVGS_LIST=("${N_HVGS_LIST_4[@]}")
+    ;;
   GS)
     KEYS=("${GS_KEYS[@]}")
     ;;
@@ -163,7 +168,7 @@ case "$EXPERIMENT" in
     KEYS=("${HVG_KEYS[@]}" "${GS_KEYS[@]}" "${FM_BULK_KEYS[@]}" "${FM_SC_KEYS[@]}")
     ;;
   *)
-    echo "Unknown EXPERIMENT: $EXPERIMENT (must be HVG|GS|SSGSEA|MAX|HALLMARK|FM_BULK|FM_SC|TEST|ALL)"
+    echo "Unknown EXPERIMENT: $EXPERIMENT (must be HVG|HVG1|HVG2|HVG3|HVG4|GS|SSGSEA|MAX|HALLMARK|FM_BULK|FM_SC|TEST|ALL)"
     exit 1
     ;;
 esac

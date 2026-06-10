@@ -26,16 +26,24 @@ if __name__ == "__main__":
     
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Generate scGPT embeddings')
-    parser.add_argument('--data_set', type=str, required=True, choices=['TCGA', 'CALGB', 'CPTAC', 'Hartwig', 'ICGC', 'TARGET_AML'],
-                    help='Dataset to process: TCGA, CALGB, CPTAC, Hartwig, ICGC, or TARGET_AML')
+    parser.add_argument('--data_set', type=str, required=True,
+                    help='Dataset to process (e.g. TCGA, CPTAC, Hugo, Riaz, Rose, ...)')
     parser.add_argument('--just_preprocess_data', action='store_true')
+    parser.add_argument(
+        '--data_dir', type=str, default=None,
+        help='Override data directory. If set, reads {data_dir}/RNA/{data_set}_bulk_RNA_processed_log1p.h5ad '
+             'and writes to {data_dir}/RNA/FM_embeddings/scGPT/.',
+    )
     args = parser.parse_args()
-    
+
     # Set paths based on dataset
     # All log1p transformed
-    
-    output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/scGPT"
-    counts_path = f"../../data/{args.data_set}/RNA/{args.data_set}_bulk_RNA_processed_log1p.h5ad"
+    if args.data_dir:
+        output_folder = os.path.join(args.data_dir, "RNA", "FM_embeddings", "scGPT")
+        counts_path   = os.path.join(args.data_dir, "RNA", f"{args.data_set}_bulk_RNA_processed_log1p.h5ad")
+    else:
+        output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/scGPT"
+        counts_path   = f"../../data/{args.data_set}/RNA/{args.data_set}_bulk_RNA_processed_log1p.h5ad"
 
     model_folder = "../../data/scGPT/scGPT_human"
     if not os.path.exists(output_folder): 
@@ -104,12 +112,16 @@ if __name__ == "__main__":
         pickle_data(emb, output_path)
 '''
 
-# Choose IDs to save by (aliquots for TARGET_AML, patient-level otherwise)
+# Choose IDs to save by
 if args.data_set == "TARGET_AML":
-    ids = RNAseq_info.obs_names.astype(str).tolist()   # e.g. TARGET-20-XXXXXX-09A
+    ids = RNAseq_info.obs_names.astype(str).tolist()
+elif args.data_set == "TCGA":
+    ids = RNAseq_info.obs['cases.submitter_id'].astype(str).tolist()
+elif 'patient_id' in RNAseq_info.obs.columns:
+    ids = RNAseq_info.obs['patient_id'].astype(str).tolist()
 else:
-    obs = 'cases.submitter_id' if args.data_set == 'TCGA' else 'patient_id'
-    ids = RNAseq_info.obs[obs].astype(str).tolist()
+    # ICI cohorts: obs_names are the patient/sample IDs
+    ids = RNAseq_info.obs_names.astype(str).tolist()
 
 print(f"Computing embeddings for {len(ids)} patients/samples")
 print("Sanmple IDs:", ids[:5])

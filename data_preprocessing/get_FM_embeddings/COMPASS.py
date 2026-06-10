@@ -18,9 +18,20 @@ def load_pickle(path):
 
 # Set data arguments: CALGB vs TCGA using argparse --data_set
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_set', type=str, required=True, choices=['TCGA', 'CALGB', 'CPTAC', 'Hartwig', 'ICGC', 'TARGET_AML'],
-                help='Dataset to process: TCGA, CALGB, CPTAC, Hartwig, ICGC, or TARGET_AML')
+parser.add_argument('--data_set', type=str, required=True,
+                help='Dataset to process (e.g. TCGA, CPTAC, Hugo, Riaz, Rose, ...)')
 parser.add_argument('--just_preprocess_data', action='store_true')
+parser.add_argument(
+    '--data_dir', type=str, default=None,
+    help='Override data directory (e.g. for ICI cohorts). '
+         'If set, reads {data_dir}/RNA/{data_set}_bulk_RNA_processed.h5ad '
+         'and writes embeddings to {data_dir}/RNA/FM_embeddings/COMPASS/.',
+)
+parser.add_argument(
+    '--cancer_code', type=int, default=None,
+    help='Integer COMPASS cancer code (overrides per-dataset lookup). '
+         'Required for ICI cohorts. See data/COMPASS/cancer_code.json.',
+)
 args = parser.parse_args()
 
 # No log-transformed
@@ -33,8 +44,15 @@ adata_path = {
     "TARGET_AML": "../../data/TARGET_AML/RNA/TARGET_AML_bulk_RNA_processed.h5ad"
 }
 
-print(f"Reading {args.data_set} data...")
-adata = ad.read_h5ad(adata_path[args.data_set])
+if args.data_dir:
+    raw_h5ad = os.path.join(args.data_dir, "RNA", f"{args.data_set}_bulk_RNA_processed.h5ad")
+elif args.data_set in adata_path:
+    raw_h5ad = adata_path[args.data_set]
+else:
+    raise ValueError(f"Unknown data_set '{args.data_set}' and no --data_dir provided.")
+
+print(f"Reading {args.data_set} data from {raw_h5ad}...")
+adata = ad.read_h5ad(raw_h5ad)
 
 data_sets_with_cancer_info = {
     "CPTAC": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CPTAC/obs_to_tcga_mapping.pkl",
@@ -59,12 +77,16 @@ df = pd.DataFrame(
 )
 '''
 
-# Choose IDs to embed/save by (aliquots for TARGET_AML, patient-level otherwise)
+# Choose IDs to embed/save by
 if args.data_set == "TARGET_AML":
-    ids = adata.obs_names.astype(str).tolist()          # e.g. TARGET-20-XXXXXX-09A
+    ids = adata.obs_names.astype(str).tolist()
+elif args.data_set == "TCGA":
+    ids = adata.obs['cases.submitter_id'].astype(str).tolist()
+elif 'patient_id' in adata.obs.columns:
+    ids = adata.obs['patient_id'].astype(str).tolist()
 else:
-    obs = 'cases.submitter_id' if args.data_set == 'TCGA' else 'patient_id'
-    ids = adata.obs[obs].astype(str).tolist()
+    # ICI cohorts: obs_names are the patient/sample IDs
+    ids = adata.obs_names.astype(str).tolist()
 
 df = pd.DataFrame(
     adata.X,
@@ -80,25 +102,29 @@ obs = 'cases.submitter_id' if args.data_set == 'TCGA' else 'patient_id'
 df.insert(0, 'bcr_patient_barcode', ids)
 
 # Add cancer code as second column
-if args.data_set == 'TCGA':
+if args.cancer_code is not None:
+    # Explicit override (e.g. for ICI cohorts passed via --cancer_code)
+    df.insert(1, 'cancer_code', args.cancer_code)
+
+elif args.data_set == 'TCGA':
     cancer_types = adata.obs['project.project_id'].str.replace('TCGA-', '', regex=False)
     df.insert(1, 'cancer_code', cancer_types.map(cancer_mapping).values)
-    
+
 elif args.data_set == 'CALGB':
-    # Insert BRCA since all patients have breast cancer
     df.insert(1, 'cancer_code', 2)
 
 elif args.data_set in data_sets_with_cancer_info:
-    # Map cancer types to codes
     cancer_types = adata.obs['patient_id'].map(id_to_tcga)
     df.insert(1, 'cancer_code', cancer_types.map(cancer_mapping).values)
-    
+
 elif args.data_set == 'TARGET_AML':
-    # Insert LAML since all patients have acute myeloid leukemia
     df.insert(1, 'cancer_code', 13)
 
 else:
-    raise ValueError(f"Unknown data set: {args.data_set}")
+    raise ValueError(
+        f"Unknown data set '{args.data_set}' and no --cancer_code provided. "
+        "For ICI cohorts pass --cancer_code <int>."
+    )
 
 gene_map = pd.read_csv("../../data/COMPASS/compass_gene_map.csv")
 compass_genes = gene_map['gene_name'].tolist()
@@ -115,7 +141,10 @@ df_for_compass = df_aligned.set_index('bcr_patient_barcode')
 print("Formatted input RNA dataframe with shape:", df_for_compass.shape)
 
 # Create output directory
-output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/COMPASS/"
+if args.data_dir:
+    output_folder = os.path.join(args.data_dir, "RNA", "FM_embeddings", "COMPASS")
+else:
+    output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/COMPASS/"
 os.makedirs(output_folder, exist_ok=True)
 
 expr_array = df_for_compass[compass_genes].values

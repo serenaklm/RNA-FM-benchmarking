@@ -21,23 +21,31 @@ def pickle_data(data, path):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_set', type=str, required=True, choices=['TCGA', 'CALGB', 'CPTAC', 'Hartwig', 'ICGC', 'TARGET_AML'],
-                    help='Dataset to process: TCGA, CALGB, CPTAC, Hartwig, ICGC, or TARGET_AML')
+    parser.add_argument('--data_set', type=str, required=True,
+                    help='Dataset to process (e.g. TCGA, CPTAC, Hugo, Riaz, Rose, ...)')
     parser.add_argument("--num_shards", type=int, default=1)
     parser.add_argument("--shard_id", type=int, default=0)
     parser.add_argument('--just_preprocess_data', action='store_true')
-    
+    parser.add_argument(
+        '--data_dir', type=str, default=None,
+        help='Override data directory. If set, reads {data_dir}/RNA/{data_set}_bulk_RNA_processed_log1p.h5ad '
+             'and writes to {data_dir}/RNA/FM_embeddings/BulkRNABert/.',
+    )
 
     args = parser.parse_args()
 
     # All log1p transformed
-    
-    RNA_counts_path = f"../../data/{args.data_set}/RNA/{args.data_set}_bulk_RNA_processed_log1p.h5ad"
+    if args.data_dir:
+        RNA_counts_path = os.path.join(args.data_dir, "RNA", f"{args.data_set}_bulk_RNA_processed_log1p.h5ad")
+        output_folder   = os.path.join(args.data_dir, "RNA", "FM_embeddings", "BulkRNABert")
+    else:
+        RNA_counts_path = f"../../data/{args.data_set}/RNA/{args.data_set}_bulk_RNA_processed_log1p.h5ad"
+        output_folder   = f"../../data/{args.data_set}/RNA/FM_embeddings/BulkRNABert"
+
     bulkbertgenes_path = "../../data/BulkRNABert/common_gene_id.txt"
     genecode_path = "../../data/GENCODE/gene_length.csv"
 
-    output_folder = f"../../data/{args.data_set}/RNA/FM_embeddings/BulkRNABert"
-    if not os.path.exists(output_folder): 
+    if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
     # Tutorial: https://huggingface.co/InstaDeepAI/BulkRNABert 
@@ -64,11 +72,14 @@ if __name__ == "__main__":
     '''
     
     if args.data_set == "TARGET_AML":
-        # use aliquot IDs like TARGET-20-XXXXXX-09A
         ids = RNAseq_info.obs_names.astype(str).tolist()
+    elif args.data_set == "TCGA":
+        ids = RNAseq_info.obs.loc[:, 'cases.submitter_id'].astype(str).tolist()
+    elif 'patient_id' in RNAseq_info.obs.columns:
+        ids = RNAseq_info.obs.loc[:, 'patient_id'].astype(str).tolist()
     else:
-        obs = 'cases.submitter_id' if args.data_set == 'TCGA' else 'patient_id'
-        ids = RNAseq_info.obs.loc[:, obs].astype(str).tolist()
+        # ICI cohorts: obs_names are the patient/sample IDs
+        ids = RNAseq_info.obs_names.astype(str).tolist()
         
     print(f"Computing embeddings for {len(ids)} patients/samples")
     print("Sample IDs:", ids[:5])

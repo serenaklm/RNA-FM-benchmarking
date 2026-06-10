@@ -5,21 +5,26 @@ source /data/rbg/users/ashyamal/miniconda3/etc/profile.d/conda.sh
 
 DATASET=""
 GPU=""
+DATA_DIR=""
 
-usage() { echo "Usage: $0 --dataset <DATASET> --gpu <GPU>"; exit 1; }
+usage() { echo "Usage: $0 --dataset <DATASET> --gpu <GPU> [--data_dir <DIR>]"; exit 1; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --dataset) DATASET="$2"; shift 2;;
-    --gpu) GPU="$2"; shift 2;;
+    --dataset)  DATASET="$2";  shift 2;;
+    --gpu)      GPU="$2";      shift 2;;
+    --data_dir) DATA_DIR="$2"; shift 2;;
     *) usage;;
   esac
 done
 
 [[ -z "$DATASET" || -z "$GPU" ]] && usage
 
-cd ../BulkFormer/BulkFormer
+EXTRA_ARGS=()
+[[ -n "$DATA_DIR" ]] && EXTRA_ARGS+=(--data_dir "$DATA_DIR")
+
+cd /data/rbg/users/ashyamal/BulkFormer/BulkFormer
 
 conda activate bulkformer
-CUDA_VISIBLE_DEVICES=$GPU python get_BulkFormer_embeddings.py --data_set "$DATASET"
+CUDA_VISIBLE_DEVICES=$GPU python get_BulkFormer_embeddings.py --data_set "$DATASET" "${EXTRA_ARGS[@]}"
 conda deactivate

@@ -1,0 +1,74 @@
+# ============================================================
+# ICI (Immune Checkpoint Inhibitor) Cohort Registry
+#
+# To add a new cohort, append an entry under `cohorts` with:
+#   data_dir:         path to the cohort root (relative to repo root)
+#   cancer_type:      TCGA cancer type abbreviation (e.g. SKCM, BLCA)
+#   organ:            free-text organ name for metadata
+#   ici_target:       target(s) blocked (e.g. PD1, CTLA4, PDL1, multiple)
+#   ici_agent:        drug name(s)
+#   tcga_cancer_code: integer code for COMPASS (see compass cancer_code.json)
+#   source:           GEO / publication identifier
+#
+# Then run (from repo root):
+#   python data_preprocessing/immunotherapy_cohorts/get_ICI_embeddings.py --cohort <NewCohort>
+#   python data_preprocessing/immunotherapy_cohorts/get_ICI_embeddings.py --merge
+#   python data_preprocessing/get_ICI_data_splits.py
+# ============================================================
+
+cohorts:
+  Hugo:
+    data_dir: "./data/immunotherapy_cohorts/Hugo"
+    cancer_type: SKCM
+    organ: Skin
+    ici_target: PD1
+    ici_agent: Pembrolizumab
+    tcga_cancer_code: 25   # SKCM = 25 in COMPASS cancer_code.json
+    source: GSE78220
+
+  Riaz:
+    data_dir: "./data/immunotherapy_cohorts/Riaz"
+    cancer_type: SKCM
+    organ: Skin
+    ici_target: PD1
+    ici_agent: Nivolumab
+    tcga_cancer_code: 25
+    source: GSE91061
+
+  Rose:
+    data_dir: "./data/immunotherapy_cohorts/Rose"
+    cancer_type: BLCA
+    organ: Bladder
+    ici_target: multiple
+    ici_agent: multiple
+    tcga_cancer_code: 1    # BLCA = 1 in COMPASS cancer_code.json
+    source: GSE176307
+
+  IMMotion150:
+    data_dir: "./data/immunotherapy_cohorts/IMMotion150"
+    cancer_type: KIRC
+    organ: Kidney
+    ici_target: PD-L1
+    ici_agent: Atezolizumab
+    tcga_cancer_code: 11   # KIRC = 11 in COMPASS cancer_code.json
+    source: EGAD00001004183
+    ici_arms: ["Atezo", "Atezo+Bev"]  # exclude Sunitinib-only arm (ARM obs column)
+
+  IMVigor210:
+    data_dir: "./data/immunotherapy_cohorts/IMVigor210"
+    cancer_type: BLCA
+    organ: Bladder
+    ici_target: PD-L1
+    ici_agent: Atezolizumab
+    tcga_cancer_code: 1    # BLCA = 1 in COMPASS cancer_code.json
+    source: EGAD00001003977
+
+# ---- derived paths (auto-computed at runtime, listed here for reference) ----
+#
+# Per-cohort processed pkl:  ./data/RNA_embeddings/ICI/{cohort}_processed.pkl
+# Merged pkl (all cohorts):  ./data/RNA_embeddings/ICI/ICI_all_processed.pkl
+#
+# Split folders:
+#   Within-cohort:  ./splits/ICI/within_cohort/{cohort}/split_{0-4}.pkl
+#   LOCO:           ./splits/ICI/loco/held_out_{cohort}/split_{0-4}.pkl
+#   Transfer:       ./splits/ICI/transfer/{train}_to_{test}/split_{0-4}.pkl

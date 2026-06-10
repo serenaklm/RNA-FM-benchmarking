@@ -11,6 +11,7 @@ from pytorch_modules.nn.MLP import MLP
 from pytorch_modules.losses.elastic_loss import elastic_loss
 from pytorch_modules.losses.cindex_loss import CIndexLoss
 from pytorch_modules.losses.cox_loss import cox_ph_loss
+from torchmetrics.classification import BinaryAUROC, BinaryAveragePrecision
 from typing import Optional
 
 
@@ -226,6 +227,9 @@ class RNA_ResponseModel(pl.LightningModule):
 
         self.act = self._act()
 
+        self.val_auroc = BinaryAUROC()
+        self.val_auprc = BinaryAveragePrecision()
+
         # Backbone (same as survival)
         if self.arch == "Linear":
             self.model = nn.Linear(self.rna_dim, 1, bias=True)
@@ -276,8 +280,14 @@ class RNA_ResponseModel(pl.LightningModule):
         preds = (logits > 0).long()
         acc = (preds == batch["y"]).float().mean()
 
+        probs = torch.sigmoid(logits)
+        self.val_auroc.update(probs, batch["y"].long())
+        self.val_auprc.update(probs, batch["y"].long())
+
         self.log("val/loss", loss, prog_bar=True, on_epoch=True)
         self.log("val/acc", acc, prog_bar=True, on_epoch=True)
+        self.log("val/auroc", self.val_auroc, prog_bar=True, on_epoch=True, on_step=False)
+        self.log("val/auprc", self.val_auprc, prog_bar=True, on_epoch=True, on_step=False)
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=False, sync_dist=True)
 
     """
@@ -292,16 +302,13 @@ class RNA_ResponseModel(pl.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         id_ = batch.get("id_", None)
         organ = batch.get("organ", None)
+        cohort = batch.get("cohort", None)
+        cancer_type = batch.get("cancer_type", None)
         y = batch["y"].detach().cpu().numpy().tolist()
 
-        logits = self(batch).detach().cpu().numpy().tolist()  # if forward returns logits (B,)
-        # If you want probabilities for AUROC, you can either:
-        # probs = torch.sigmoid(self(batch)).detach().cpu().numpy().tolist()
-        # and return probs instead of logits. AUROC works with either monotone transform.
+        logits = self(batch).detach().cpu().numpy().tolist()
 
-        #return id_, logits, y, organ
-        cancer_type = batch.get("cancer_type", None)
-        return id_, logits, y, organ, cancer_type
+        return id_, logits, y, organ, cancer_type, cohort
 
 
     def configure_optimizers(self):

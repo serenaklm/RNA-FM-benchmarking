@@ -126,11 +126,23 @@ def main(args):
                 f"or comma-list like 'immuno,aurora'."
             )
 
-    #DATA_H5AD_PATH = data_set_files[args.data_set]
-    DATA_H5AD_PATH = f"../data/{args.data_set}/RNA/{args.data_set}_bulk_RNA_processed_log1p.h5ad"
+    # Allow explicit overrides for non-standard datasets (e.g. ICI cohorts)
+    if args.data_dir:
+        DATA_H5AD_PATH = os.path.join(args.data_dir, "RNA", f"{args.data_set}_bulk_RNA_processed_log1p.h5ad")
+    else:
+        DATA_H5AD_PATH = f"../data/{args.data_set}/RNA/{args.data_set}_bulk_RNA_processed_log1p.h5ad"
+
     GMT_DIR = "../data/gene_sets/processed"
-    OUTPUT_DIR = f"../data/{args.data_set}/ssGSEA_scores/"
-    GENE_NAME_PATH = f"../data/{args.data_set}/{args.data_set}_genes_ordered_by_variance.pkl"
+
+    if args.output_dir:
+        OUTPUT_DIR = args.output_dir
+    else:
+        OUTPUT_DIR = f"../data/{args.data_set}/ssGSEA_scores/"
+
+    if args.gene_name_path:
+        GENE_NAME_PATH = args.gene_name_path
+    else:
+        GENE_NAME_PATH = f"../data/{args.data_set}/{args.data_set}_genes_ordered_by_variance.pkl"
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -207,8 +219,20 @@ if __name__ == "__main__":
         "--data_set",
         type=str,
         required=True,
-        choices=["TCGA", "CALGB", "CPTAC", "Hartwig", "ICGC", "TARGET_AML"],
-        help="Dataset to process",
+        help="Dataset to process (e.g. TCGA, CPTAC, Hugo, Riaz, Rose, ...).",
+    )
+    parser.add_argument(
+        "--data_dir", type=str, default=None,
+        help="Override data directory (e.g. for ICI cohorts). "
+             "If set, h5ad is read from {data_dir}/RNA/{data_set}_bulk_RNA_processed_log1p.h5ad.",
+    )
+    parser.add_argument(
+        "--gene_name_path", type=str, default=None,
+        help="Override gene list pickle path. Use the TCGA gene list for ICI cohorts.",
+    )
+    parser.add_argument(
+        "--output_dir", type=str, default=None,
+        help="Override output directory for ssGSEA score pickles.",
     )
     args = parser.parse_args()
     main(args)
