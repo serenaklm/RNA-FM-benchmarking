@@ -4,10 +4,10 @@ set -euo pipefail
 # ============================================================
 # run_all_single_dataset.sh
 #
-# GPU 1: HVG1 + HVG2
-# GPU 3: HVG3 + BASELINE
-# GPU 4: MAX + FM_SC + PCA
-# GPU 5: SSGSEA + FM_BULK
+# GPU 4: HVG1 + HVG2 + HVG3
+# GPU 5: HVG4 + BASELINE
+# GPU 6: MAX + FM_SC + PCA
+# GPU 7: SSGSEA + FM_BULK
 #
 # 8 concurrent processes per GPU (2 expts x 2 archs x 2 losses)
 # Seed 37 first, then seed 42 once GPU is done.
@@ -50,10 +50,10 @@ run_gpu () {
   done
 }
 
-run_gpu 3 HVG1 HVG2       &
-run_gpu 5 HVG3 BASELINE    &
-run_gpu 6 MAX  FM_SC PCA       &
-run_gpu 7 SSGSEA FM_BULK   &
+run_gpu 0 HVG1 HVG2 HVG3       &
+run_gpu 1 HVG4 BASELINE    &
+run_gpu 2 MAX  FM_SC PCA       &
+run_gpu 3 SSGSEA FM_BULK   &
 
 wait
 echo "All ${1} runs finished. Logs in: ${LOGDIR}"

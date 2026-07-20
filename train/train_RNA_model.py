@@ -268,7 +268,7 @@ def main(args):
     # -----------------------
     wandb_logger = WandbLogger(
         save_dir=results_dir,
-        project=f"{dataset_name}_{task}_FM_benchmarking", 
+        project=f"{dataset_name}_{task}_FM_benchmarking{args.wandb_project_suffix}",
         entity=args.user,
         log_model=False,
         name=expt_name,
@@ -361,6 +361,12 @@ if __name__ == "__main__":
         required=True,
         default="Not provided",
         help="Path to JSON file containing tuned HPs",
+    )
+    parser.add_argument(
+        "--wandb_project_suffix",
+        type=str,
+        default="",
+        help="Optional suffix appended to the wandb project name, e.g. '_v2'.",
     )
 
     args = parser.parse_args()

@@ -29,6 +29,7 @@ LOSS_NAME="$6"    # still passed; python can ignore for response
 export CUDA_VISIBLE_DEVICES="$GPU_ID"
 
 SEED="${SEED:-37}"
+WANDB_PROJECT_SUFFIX="${WANDB_PROJECT_SUFFIX:-}"
 SPLITS=(0 1 2 3 4)
 
 N_HVGS_LIST_DEFAULT=("None")
@@ -231,6 +232,7 @@ for KEY in "${KEYS[@]}"; do
         --seed "$SEED"
         --split_idx "$SPLIT_IDX"
         --rna_embedding_key "$KEY"
+        --wandb_project_suffix "$WANDB_PROJECT_SUFFIX"
       )
 
       if [[ "$RUN_N_HVG" != "None" ]]; then

@@ -44,7 +44,7 @@ eval_tag() {
   local LOGFILE="${LOG_DIR}/${PARADIGM}__${COHORT_TAG}.log"
 
   echo "  Evaluating: paradigm=$PARADIGM  tag=$COHORT_TAG"
-  python -m test.eval_ICI_models \
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -m test.eval_ICI_models \
     --paradigm   "$PARADIGM" \
     --cohort_tag "$COHORT_TAG" \
     > "$LOGFILE" 2>&1 &

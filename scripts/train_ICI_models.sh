@@ -10,7 +10,7 @@
 #   ./scripts/train_ICI_models.sh <GPU_ID> <PARADIGM> <EXPERIMENT> <ARCH>
 #
 # PARADIGM:   within_cohort | loco | transfer
-# EXPERIMENT: HVG | HVG1 | HVG2 | HVG3 | GS | SSGSEA | MAX | FM_BULK | FM_SC | PCA | ALL | TEST
+# EXPERIMENT: HVG | HVG1 | HVG2 | HVG3 | HVG4 | GS | SSGSEA | MAX | FM_BULK | FM_SC | PCA | ALL | TEST
 # ARCH:       Linear | MLP | ResidualMLP
 #
 # Examples:
@@ -72,6 +72,7 @@ N_HVGS_LIST_HVG=(18 50 132 500 729 1250 5000 10000)
 N_HVGS_LIST_1=(500 729 1250)
 N_HVGS_LIST_2=(18 50 5000)
 N_HVGS_LIST_3=(132 10000)
+N_HVGS_LIST_4=(44 256 512 640 2058)   # matches FM embedding dimensionalities
 TEST_LIST_HVG=(50)
 
 KEYS=()
@@ -82,6 +83,7 @@ case "$EXPERIMENT" in
   HVG1)   KEYS=("${HVG_KEYS[@]}");                      N_HVGS_LIST=("${N_HVGS_LIST_1[@]}");;
   HVG2)   KEYS=("${HVG_KEYS[@]}");                      N_HVGS_LIST=("${N_HVGS_LIST_2[@]}");;
   HVG3)   KEYS=("${HVG_KEYS[@]}");                      N_HVGS_LIST=("${N_HVGS_LIST_3[@]}");;
+  HVG4)   KEYS=("${HVG_KEYS[@]}");                      N_HVGS_LIST=("${N_HVGS_LIST_4[@]}");;
   GS)     KEYS=("${GS_KEYS[@]}");;
   SSGSEA) KEYS=("${SSGSEA_KEYS[@]}");;
   MAX)    KEYS=("${MAX_KEYS[@]}");;
@@ -93,7 +95,7 @@ case "$EXPERIMENT" in
   ALL)    KEYS=("${HVG_KEYS[@]}" "${GS_KEYS[@]}" "${FM_BULK_KEYS[@]}" "${FM_SC_KEYS[@]}" "${PCA_KEYS[@]}");;
   *)
     echo "Unknown EXPERIMENT: $EXPERIMENT"
-    echo "Valid: HVG|HVG1|HVG2|HVG3|BASELINE|GS|SSGSEA|MAX|FM_BULK|FM_SC|PCA|ALL|TEST"
+    echo "Valid: HVG|HVG1|HVG2|HVG3|HVG4|BASELINE|GS|SSGSEA|MAX|FM_BULK|FM_SC|PCA|ALL|TEST"
     exit 1
     ;;
 esac
@@ -147,6 +149,7 @@ run_paradigm() {
             --split_idx   "$SPLIT_IDX"
             --rna_embedding_key "$KEY"
             --hp_path     "$HP_PATH"
+            --wandb_project_suffix "${WANDB_PROJECT_SUFFIX:-}"
           )
           if [[ "$RUN_N_HVG" != "None" ]]; then
             CMD+=(--n_HVGs "$RUN_N_HVG")

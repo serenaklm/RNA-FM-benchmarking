@@ -227,7 +227,7 @@ def main(args):
     # ── Logger ────────────────────────────────────────────────────────────
     wandb_logger = WandbLogger(
         save_dir=str(results_dir),
-        project=f"ICI_{args.paradigm}_FM_benchmarking",
+        project=f"ICI_{args.paradigm}_FM_benchmarking{args.wandb_project_suffix}",
         entity=args.user,
         log_model=False,
         name=run_name,
@@ -282,6 +282,8 @@ if __name__ == "__main__":
         help="RNA embedding key (e.g. RNA_seq, BulkFormer, COMPASS, PCA_50, ...).",
     )
     p.add_argument("--n_HVGs", type=int, default=None)
+    p.add_argument("--wandb_project_suffix", type=str, default="",
+                   help="Optional suffix for the wandb project name, e.g. '_v2'.")
     p.add_argument(
         "--arch", required=True, choices=["Linear", "MLP", "ResidualMLP"],
     )

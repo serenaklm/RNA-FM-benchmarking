@@ -299,22 +299,28 @@ def split_Hartwig(
     test_ratio=0.15,
     stratify_key="cancer_type",
     sample_to_patient_path="/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/sample_to_patient_dict.pkl",
+    forbidden_patient_ids=None,
 ):
     data = load_pickle(data_path)
     sample_to_patient = load_pickle(sample_to_patient_path)
 
+    forbidden = set(forbidden_patient_ids) if forbidden_patient_ids else set()
+
     all_sample_ids = list(data.keys())
 
-    # Group samples by patient
+    # Group samples by patient, excluding forbidden patients
     from collections import defaultdict
     patient_to_samples = defaultdict(list)
     for sid in all_sample_ids:
         pid = sample_to_patient[sid]
+        if pid in forbidden:
+            continue
         patient_to_samples[pid].append(sid)
 
     all_patient_ids = list(patient_to_samples.keys())
 
-    print(f"[Hartwig] Total samples: {len(all_sample_ids)}, Unique patients: {len(all_patient_ids)}")
+    n_excluded = len(all_sample_ids) - sum(len(v) for v in patient_to_samples.values())
+    print(f"[Hartwig] Total samples: {len(all_sample_ids)}, excluded (forbidden): {n_excluded}, remaining: {len(all_sample_ids) - n_excluded}, Unique patients: {len(all_patient_ids)}")
 
     data_key = Path(data_path).name.replace("_processed.pkl", "")
 
@@ -424,11 +430,17 @@ if __name__ == "__main__":
     elif args.data_set == "CPTAC":
         split_CPTAC(data_path, splits_folder, n_splits=args.n_splits)
     elif args.data_set in ["Hartwig", "Hartwig_500"]:
+        HARTWIG_FORBIDDEN_PATIENTS = [
+            "D00000678", "D00000679", "D00002341", "D00002350", "D00002351",
+            "D00002352", "D00002353", "D00002354", "D00001925", "D00004239",
+            "D00006712", "D00006922", "D00007741", "D00007765",
+        ]
         split_Hartwig(
             data_path=data_path,
             split_root_folder=splits_output_folder,
             n_splits=args.n_splits,
             stratify_key="cancer_type",
+            forbidden_patient_ids=HARTWIG_FORBIDDEN_PATIENTS,
         )
     elif args.data_set == "TARGET_AML":
         split_TARGET_AML(

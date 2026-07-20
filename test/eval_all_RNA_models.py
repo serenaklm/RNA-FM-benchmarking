@@ -371,6 +371,7 @@ def main(args):
     skipped = 0
 
     for i, folder in tqdm(enumerate(folders, 1), total=len(folders)):
+        print(f"\n[{i}/{len(folders)}] Evaluating: {folder.name}", flush=True)
         meta = parse_run_name(folder.name)
         if meta is None:
             continue

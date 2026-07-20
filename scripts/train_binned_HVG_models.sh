@@ -59,10 +59,10 @@ STRATEGIES_B=(quantile global_quantile per_sample_quantile)
 
 # Best-performing n_HVGs per dataset from the main benchmarking
 declare -A BEST_N_HVGS
-BEST_N_HVGS[TCGA]=10000
-BEST_N_HVGS[Hartwig]=5000
-BEST_N_HVGS[CPTAC]=1250
-BEST_N_HVGS[TARGET_AML]=1250
+BEST_N_HVGS[TCGA]=5000
+BEST_N_HVGS[Hartwig]=10000
+BEST_N_HVGS[CPTAC]=5000
+BEST_N_HVGS[TARGET_AML]=5000
 
 # ============================================================
 # run_dataset <GPU_ID> <DATASET> <STRATEGY...>

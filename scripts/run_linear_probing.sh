@@ -4,7 +4,7 @@ set -euo pipefail
 # ============================================================
 # Runs linear probing on 4 GPUs in parallel (one dataset per GPU).
 # Within each GPU, launches 8 processes in parallel, each handling
-# a non-overlapping slice of the 25 embedding specs.
+# a non-overlapping slice of the 30 embedding specs.
 # Partial CSVs are merged into a single output file at the end.
 #
 # Usage:
@@ -20,10 +20,10 @@ LOG_DIR="logs/linear_probing"
 
 mkdir -p "$OUT_DIR" "$TMP_DIR" "$LOG_DIR"
 
-# 25 embedding specs split into 8 non-overlapping ranges [start, end)
-# 3+3+3+3+3+3+3+4 = 25
-EMB_STARTS=( 0  3  6  9 12 15 18 21)
-EMB_ENDS=(   3  6  9 12 15 18 21 25)
+# 30 embedding specs split into 8 non-overlapping ranges [start, end)
+# 4+4+4+4+4+4+3+3 = 30
+EMB_STARTS=( 0  4  8 12 16 20 24 27)
+EMB_ENDS=(   4  8 12 16 20 24 27 30)
 
 run_dataset() {
     local DATASET="$1"
@@ -39,12 +39,13 @@ run_dataset() {
         local OUT_CSV="$TMP_DIR/linear_probing_${DATASET}_${START}_${END}.csv"
         local LOG="$LOG_DIR/${DATASET}_${START}_${END}.log"
 
-        python -m "$SCRIPT" \
+        OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -m "$SCRIPT" \
             --dataset    "$DATASET" \
             --device     cuda:0 \
             --emb_start  "$START" \
             --emb_end    "$END" \
             --out_csv    "$OUT_CSV" \
+            --overwrite \
             > "$LOG" 2>&1 &
 
         job_count=$((job_count + 1))

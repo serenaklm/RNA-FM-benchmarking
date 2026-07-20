@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from sklearn.decomposition import PCA
 from sklearn.metrics import cohen_kappa_score, f1_score
 from sklearn.preprocessing import LabelEncoder
 from tqdm import tqdm
@@ -43,7 +44,7 @@ TASK_DATASETS = {
     "organ":       ["TCGA", "CPTAC", "Hartwig"],
 }
 
-# 25 embedding specs: (rna_key, n_hvgs)
+# 30 embedding specs: (rna_key, n_hvgs)
 # For RNA_seq, n_hvgs slices the first n genes at runtime.
 # For all other keys, n_hvgs is None and the full embedding is used.
 EMBEDDING_SPECS = [
@@ -77,6 +78,12 @@ EMBEDDING_SPECS = [
     ("RNA_seq",          1250),
     ("RNA_seq",          5000),
     ("RNA_seq",          10000),
+    # HVG4 — matches FM embedding dimensionalities
+    ("RNA_seq",          44),
+    ("RNA_seq",          256),
+    ("RNA_seq",          512),
+    ("RNA_seq",          640),
+    ("RNA_seq",          2058),
     # Full raw expression
     ("RNA_seq",          None),
 ]
@@ -303,9 +310,15 @@ def run_one_split(dataset, rna_key, n_hvgs, task, split_idx,
     val_ids   = deduplicate_by_patient(split.get("val", []), s2p_local)
     test_ids  = deduplicate_by_patient(split["test"],         s2p_local)
 
+    # For PCA and HVG, collect full RNA_seq and apply train-only transforms below.
+    is_pca = rna_key.startswith("PCA_")
+    needs_hvg_transform = (rna_key == "RNA_seq" and n_hvgs is not None)
+    collect_key    = "RNA_seq" if (is_pca or needs_hvg_transform) else rna_key
+    collect_n_hvgs = None      if (is_pca or needs_hvg_transform) else n_hvgs
+
     ckwargs = dict(
         patient_data=patient_data, clinical_dedup=clinical_dedup,
-        dataset_name=dataset, rna_key=rna_key, n_hvgs=n_hvgs,
+        dataset_name=dataset, rna_key=collect_key, n_hvgs=collect_n_hvgs,
         task=task, s2p=s2p_local, compass_valid_ids=compass_valid_ids,
     )
 
@@ -315,6 +328,28 @@ def run_one_split(dataset, rna_key, n_hvgs, task, split_idx,
 
     if len(X_tr_raw) == 0 or len(X_te_raw) == 0:
         return None
+
+    # Fit PCA or HVG selection on training data only, then apply to all splits.
+    if is_pca or needs_hvg_transform:
+        train_mat = np.stack(X_tr_raw).astype(np.float32)
+        if is_pca:
+            n_components = int(rna_key.split("_")[1])
+            n_actual = min(n_components, train_mat.shape[0] - 1, train_mat.shape[1])
+            pca = PCA(n_components=n_actual, random_state=0)
+            from threadpoolctl import threadpool_limits
+            with threadpool_limits(limits=1, user_api="blas"):
+                pca.fit(train_mat)
+            X_tr_raw = list(pca.transform(train_mat))
+            if X_vl_raw:
+                X_vl_raw = list(pca.transform(np.stack(X_vl_raw).astype(np.float32)))
+            if X_te_raw:
+                X_te_raw = list(pca.transform(np.stack(X_te_raw).astype(np.float32)))
+        else:  # HVG
+            train_var = np.var(train_mat, axis=0)
+            hvg_idx = np.argsort(train_var)[::-1][:n_hvgs]
+            X_tr_raw = [x[hvg_idx] for x in X_tr_raw]
+            X_vl_raw = [x[hvg_idx] for x in X_vl_raw]
+            X_te_raw = [x[hvg_idx] for x in X_te_raw]
 
     le = LabelEncoder().fit(y_tr_raw)
     if len(le.classes_) < 2:

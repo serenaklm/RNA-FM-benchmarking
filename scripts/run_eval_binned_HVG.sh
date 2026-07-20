@@ -37,8 +37,8 @@ if [[ $# -ne 0 ]]; then
     exit 1
 fi
 
-#run_eval 1 TCGA       &
-#run_eval 1 Hartwig    &
+run_eval 1 TCGA       &
+run_eval 1 Hartwig    &
 run_eval 1 CPTAC      &
 run_eval 1 TARGET_AML &
 
