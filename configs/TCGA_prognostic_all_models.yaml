@@ -1,0 +1,43 @@
+task: train_TCGA_PFS_all_model_archs_losses
+
+dataset: TCGA
+
+data:
+  data_path: "./data/RNA_embeddings/TCGA_processed_cleaned.pkl"
+  split_folder: "./splits/TCGA_cleaned"
+  batch_size: 128
+  num_workers: 4
+  endpoint: "PFS"
+
+model:
+  lr: 5e-4
+  weight_decay: 5e-6
+
+  ResidualMLP:
+    hidden_dim: 512
+    num_layers: 3
+    non_linearity: "GELU"
+    dropout_rate: 0.3
+    penalty_weight: 1e-3
+
+  MLP:
+    hidden_dim: 512
+    num_layers: 3
+    non_linearity: "GELU"
+    dropout_rate: 0.3
+    penalty_weight: 1e-3
+
+  Linear:
+    penalty_weight: 1e-3
+
+trainer:
+  max_epochs: 500
+  accelerator: gpu
+  devices: 1
+  gradient_clip_val: 1.5
+  log_every_n_steps: 10
+  accumulate_grad_batches: 4
+
+callbacks:
+  patience: 50
+  monitor: "val/loss"
