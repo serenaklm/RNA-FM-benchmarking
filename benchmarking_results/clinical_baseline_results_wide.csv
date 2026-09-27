@@ -1,0 +1,4 @@
+Covariates,TCGA,Hartwig,CPTAC,TARGET_AML
+Demographic & staging,0.670 ± 0.011,0.489 ± 0.017,0.641 ± 0.028,0.530 ± 0.020
+Demographic & staging + tumor location,0.735 ± 0.010,0.551 ± 0.016,0.694 ± 0.021,0.530 ± 0.020
+Tumor location only,0.684 ± 0.009,0.549 ± 0.015,0.645 ± 0.019,NA

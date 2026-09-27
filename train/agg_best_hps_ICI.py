@@ -40,6 +40,7 @@ EXPECTED_EMBEDDINGS = [
     "scGPT",
     "STATE",
     "CancerFoundation",
+    "UCE",
     "RNA_seq_1250",     # HVG representative; HPs shared across all HVG counts
     "ssGSEA_combined",  # ssGSEA pooling representative; HPs shared across all ssGSEA_* keys
     "max_combined",     # max pooling representative; HPs shared across all max_* keys

@@ -28,7 +28,6 @@ model_outputs_finetune/
 concat_model_outputs/
 clinical_concat_model_outputs/
 old_clinical_concat_model_outputs/
-/val/
 *.ckpt
 *.pt
 *.pth
@@ -72,9 +71,11 @@ wandb/
 *.tmp
 *.bak
 .env
-
 *.pdf
-
 old_*
+/paper/
+/old/
 
-*.pdf
+/splits/CALGB/
+hp_results_ICI/*_split*.json
+hp_results/UCE_runs/

@@ -7,7 +7,7 @@ import json
 CSV_PATH = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results/tuning_history.csv"
 LOG_DIR = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results"
 
-RNA_KEYS = ["BulkFormer", "BulkRNABert", "COMPASS", "scGPT", "STATE", "CancerFoundation", "RNA_seq_1250", "RNA_seq_17490", "ssGSEA_combined", "max_combined", "PCA_50"]
+RNA_KEYS = ["BulkFormer", "BulkRNABert", "COMPASS", "scGPT", "STATE", "CancerFoundation", "UCE", "RNA_seq_1250", "RNA_seq_17490", "ssGSEA_combined", "max_combined", "PCA_50"]
 ARCHS = ["ResidualMLP", "Linear"]
 LOSSES = ["Cox", "CIndex"]
 SPLITS = [0, 1, 2, 3, 4]
