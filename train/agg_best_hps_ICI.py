@@ -32,7 +32,7 @@ HP_DIR   = REPO_ROOT / "hp_results_ICI"
 CSV_PATH = HP_DIR / "tuning_history_ICI.csv"
 OUT_PATH = HP_DIR / "all_aggregated_hps_ICI.json"
 
-# Same 11 embeddings as PFS benchmarking (matches tune_ICI_models.sh)
+# Same 12 embeddings as PFS benchmarking (matches tune_ICI_models.sh)
 EXPECTED_EMBEDDINGS = [
     "BulkFormer",
     "BulkRNABert",

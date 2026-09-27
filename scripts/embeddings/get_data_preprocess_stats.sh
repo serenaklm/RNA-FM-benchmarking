@@ -84,6 +84,15 @@ python CancerFoundation.py --data_set "$DATASET" --just_preprocess_data \
   2>&1 | tee "${DATA_LOG_DIR}/CancerFoundation.log"
 conda deactivate
 
+# ---------- UCE (uce env, no GPU needed) ----------
+echo ""
+echo "===== UCE ====="
+cd "${REPO_ROOT}/data_preprocessing/get_FM_embeddings"
+conda activate uce
+python UCE.py --data_set "$DATASET" --just_preprocess_data \
+  2>&1 | tee "${DATA_LOG_DIR}/UCE.log"
+conda deactivate
+
 cd "$REPO_ROOT"
 
 echo ""

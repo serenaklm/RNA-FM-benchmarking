@@ -183,6 +183,7 @@ def preprocess_target_aml(
                 "scGPT": None,
                 "STATE": None,
                 "CancerFoundation": None,
+                "UCE": None,
                 "BulkFormer": None,
                 "COMPASS": None,
                 "BulkRNABert": None,

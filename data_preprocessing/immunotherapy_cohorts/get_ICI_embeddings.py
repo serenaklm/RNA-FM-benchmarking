@@ -19,7 +19,7 @@ Output:
 Each sample dict contains:
     RNA_seq          : float32 array aligned to TCGA gene vocab (17490 genes)
     max_*/ssGSEA_*/PCA_*  : baseline embedding features
-    scGPT/STATE/COMPASS/BulkFormer/BulkRNABert/CancerFoundation : FM embeddings (None if missing)
+    scGPT/STATE/COMPASS/BulkFormer/BulkRNABert/CancerFoundation/UCE : FM embeddings (None if missing)
     response         : int (1=R, 0=NR)
     cohort           : str  cohort name
     cancer_type      : str  e.g. "SKCM"

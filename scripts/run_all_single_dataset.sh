@@ -4,12 +4,16 @@ set -euo pipefail
 # ============================================================
 # run_all_single_dataset.sh
 #
-# GPU 4: HVG1 + HVG2 + HVG3
-# GPU 5: HVG4 + BASELINE
-# GPU 6: MAX + FM_SC + PCA
-# GPU 7: SSGSEA + FM_BULK
+# Runs all 32 PFS embeddings for one dataset (both archs, losses, seeds).
 #
-# 8 concurrent processes per GPU (2 expts x 2 archs x 2 losses)
+# GPU 0: HVG1 + HVG2 + HVG3
+# GPU 1: HVG4 (FM-matched sizes, incl. 1280 for UCE) + BASELINE
+# GPU 2: MAX + FM_SC (scGPT, STATE, CancerFoundation, UCE) + PCA
+# GPU 3: SSGSEA + FM_BULK
+#
+# Usage: ./scripts/run_all_single_dataset.sh <DATASET>
+#
+# Up to 12 concurrent processes per GPU (experiments x 2 archs x 2 losses)
 # Seed 37 first, then seed 42 once GPU is done.
 # ============================================================
 

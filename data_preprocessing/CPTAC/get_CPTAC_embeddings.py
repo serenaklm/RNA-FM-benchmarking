@@ -379,6 +379,7 @@ def preprocess_cptac(
                 "scGPT": None,
                 "STATE": None,
                 "CancerFoundation": None,
+                "UCE": None,
                 "BulkFormer": None,
                 "COMPASS": None,
                 "BulkRNABert": None,

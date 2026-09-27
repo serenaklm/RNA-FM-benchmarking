@@ -5,22 +5,32 @@ set -euo pipefail
 # Usage:
 #   ./scripts/train_RNA_models.sh <GPU_ID> <DATASET> <TASK> <EXPERIMENT> <ARCH> <LOSS_NAME>
 #
-# DATASET:   TCGA | CPTAC | CALGB | Hartwig
+# DATASET:   TCGA | CPTAC | Hartwig | TARGET_AML
 # TASK:      survival | response
-# EXPERIMENT: HVG | HVG1 | HVG2 | HVG3 | GS | SSGSEA | MAX | HALLMARK | FM_BULK | FM_SC | TEST | ALL
+# EXPERIMENT:
+#   HVG        — 8 HVG sizes (18, 50, 132, 500, 729, 1250, 5000, 10000)
+#   HVG1/2/3   — subsets of the HVG sizes (for parallel execution)
+#   HVG4       — FM-matched HVG sizes (44, 256, 512, 640, 1280, 2058)
+#   GS         — all gene-set embeddings (4 collections × max/ssGSEA)
+#   SSGSEA | MAX | HALLMARK — gene-set subsets
+#   FM_BULK    — BulkFormer, BulkRNABert, COMPASS
+#   FM_SC      — scGPT, STATE, CancerFoundation, UCE
+#   PCA        — PCA_50, PCA_100 (fit on each training split)
+#   BASELINE   — raw expression (all genes)
+#   ALL | TEST
 # ARCH:      Linear | MLP | ResidualMLP
 # LOSS_NAME: Cox | CIndex   (ignored for TASK=response, but still required by this script)
 #
 # Examples:
 #   ./scripts/train_RNA_models.sh 0 TCGA   survival HVG ResidualMLP CIndex
 #   ./scripts/train_RNA_models.sh 0 CPTAC  survival HVG Linear      Cox
-#   ./scripts/train_RNA_models.sh 0 CALGB  survival ALL ResidualMLP Cox
+#   ./scripts/train_RNA_models.sh 0 TARGET_AML survival FM_SC ResidualMLP Cox
 #   ./scripts/train_RNA_models.sh 0 Hartwig survival FM_BULK Linear Cox
 #   ./scripts/train_RNA_models.sh 0 Hartwig response HVG ResidualMLP Cox
 # ============================================================
 
 GPU_ID="$1"
-DATASET="$2"      # TCGA | CPTAC | CALGB | Hartwig
+DATASET="$2"      # TCGA | CPTAC | Hartwig | TARGET_AML
 TASK="$3"         # survival | response
 EXPERIMENT="$4"
 ARCH="$5"

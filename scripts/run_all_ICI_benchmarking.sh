@@ -12,17 +12,20 @@ set -euo pipefail
 #   GPU 1: within_cohort  + ResidualMLP
 #   GPU 2: loco           + Linear
 #   GPU 3: loco           + ResidualMLP
-#   GPU 4: transfer       + Linear      [HVG1 + HVG2 + HVG3 + BASELINE]
+#   GPU 4: transfer       + Linear      [HVG1 + HVG2 + HVG3 + HVG4 + BASELINE]
 #   GPU 5: transfer       + Linear      [GS + FM_BULK + FM_SC + PCA]
-#   GPU 6: transfer       + ResidualMLP [HVG1 + HVG2 + HVG3 + BASELINE]
+#   GPU 6: transfer       + ResidualMLP [HVG1 + HVG2 + HVG3 + HVG4 + BASELINE]
 #   GPU 7: transfer       + ResidualMLP [GS + FM_BULK + FM_SC + PCA]
 #
 # Transfer is split across two GPUs per arch because it has 20 cohort pairs.
 #
-# Total models: ~15,000
-#   within_cohort: 5 cohorts × 25 emb × 5 splits × 2 seeds × 2 archs = 2,500
-#   loco:          5 held-out × 25 emb × 5 splits × 2 seeds × 2 archs = 2,500
-#   transfer:      20 pairs   × 25 emb × 5 splits × 2 seeds × 2 archs = 10,000
+# Embeddings (32): 7 FMs + 14 HVG sizes (HVG1-3: 8 sizes; HVG4: 6 FM-matched
+# sizes incl. 1280 for UCE) + 8 gene-set + 2 PCA + raw expression.
+#
+# Total models: ~19,200
+#   within_cohort: 5 cohorts × 32 emb × 5 splits × 2 seeds × 2 archs = 3,200
+#   loco:          5 held-out × 32 emb × 5 splits × 2 seeds × 2 archs = 3,200
+#   transfer:      20 pairs   × 32 emb × 5 splits × 2 seeds × 2 archs = 12,800
 #
 # Usage:
 #   ./scripts/run_all_ICI_benchmarking.sh
@@ -40,12 +43,12 @@ export CONFIG_PATH="${CONFIG_PATH:-./configs/all_models.yaml}"
 export HP_PATH="${HP_PATH:-Not provided}"
 
 # ---------------------------------------------------------------------------
-# within_cohort — runs all cohorts, all 25 embeddings, for one arch on one GPU
+# within_cohort — runs all cohorts, all 32 embeddings, for one arch on one GPU
 # ---------------------------------------------------------------------------
 run_within () {
   local GPU="$1"
   local ARCH="$2"
-  for EXP in HVG1 HVG2 HVG3 BASELINE GS FM_BULK FM_SC PCA; do
+  for EXP in HVG1 HVG2 HVG3 HVG4 BASELINE GS FM_BULK FM_SC PCA; do
     local LOGFILE="${LOGDIR}/gpu${GPU}_within_cohort_${EXP}_${ARCH}.log"
     echo "[GPU${GPU}] within_cohort  exp=${EXP}  arch=${ARCH}"
     "$TRAIN_ICI" "$GPU" within_cohort "$EXP" "$ARCH" \
@@ -55,12 +58,12 @@ run_within () {
 }
 
 # ---------------------------------------------------------------------------
-# loco — all held-out cohorts, all 25 embeddings, for one arch on one GPU
+# loco — all held-out cohorts, all 32 embeddings, for one arch on one GPU
 # ---------------------------------------------------------------------------
 run_loco () {
   local GPU="$1"
   local ARCH="$2"
-  for EXP in HVG1 HVG2 HVG3 BASELINE GS FM_BULK FM_SC PCA; do
+  for EXP in HVG1 HVG2 HVG3 HVG4 BASELINE GS FM_BULK FM_SC PCA; do
     local LOGFILE="${LOGDIR}/gpu${GPU}_loco_${EXP}_${ARCH}.log"
     echo "[GPU${GPU}] loco  exp=${EXP}  arch=${ARCH}"
     "$TRAIN_ICI" "$GPU" loco "$EXP" "$ARCH" \
@@ -70,12 +73,12 @@ run_loco () {
 }
 
 # ---------------------------------------------------------------------------
-# transfer (RNA_seq) — HVG1 HVG2 HVG3 BASELINE run sequentially on one GPU
+# transfer (RNA_seq) — HVG1 HVG2 HVG3 HVG4 BASELINE run sequentially on one GPU
 # ---------------------------------------------------------------------------
 run_transfer_hvg () {
   local GPU="$1"
   local ARCH="$2"
-  for EXP in HVG1 HVG2 HVG3 BASELINE; do
+  for EXP in HVG1 HVG2 HVG3 HVG4 BASELINE; do
     local LOGFILE="${LOGDIR}/gpu${GPU}_transfer_${EXP}_${ARCH}.log"
     echo "[GPU${GPU}] transfer  exp=${EXP}  arch=${ARCH}"
     "$TRAIN_ICI" "$GPU" transfer "$EXP" "$ARCH" \

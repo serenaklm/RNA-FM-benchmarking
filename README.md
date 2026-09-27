@@ -104,7 +104,6 @@ RNA-FM-benchmarking/
 │   ├── immunotherapy_cohorts/          # ICI cohort processing (GEO + EGA) and embedding assembly
 │   ├── get_FM_embeddings/              # FM embedding extraction (BulkRNABert, BulkFormer, COMPASS,
 │   │                                   #   scGPT, STATE, UCE; CancerFoundation via its own repo)
-│   ├── add_UCE_to_RNA_embeddings.py    # Merge UCE embeddings into the per-cohort .pkl files
 │   ├── compute_PCA.py                  # PCA projections
 │   ├── get_ssGSEA_scores.py            # ssGSEA gene-set scores
 │   ├── get_genes_sets.py, dict_to_gmt.py
@@ -227,7 +226,6 @@ python -m data_preprocessing.TCGA.get_TCGA_embeddings       # one .pkl per cohor
 python -m data_preprocessing.Hartwig.get_Hartwig_embeddings
 python -m data_preprocessing.CPTAC.get_CPTAC_embeddings
 python -m data_preprocessing.TARGET_AML.get_TARGET_AML_embeddings
-python data_preprocessing/add_UCE_to_RNA_embeddings.py      # add UCE embeddings
 ```
 
 The assembled files go to `data/RNA_embeddings/<COHORT>_processed*.pkl`. HVG selection and PCA are fit on each split's training set at training time.

@@ -112,6 +112,11 @@ run_step "CancerFoundation" \
     --dataset $COHORT --gpu $GPU \
     --data_dir ${DATA_DIR}"
 
+run_step "UCE" \
+  "bash ${REPO_ROOT}/scripts/embeddings/run_UCE.sh \
+    --dataset $COHORT --gpu $GPU \
+    --data_dir ${DATA_DIR}"
+
 # ── CPU embeddings ─────────────────────────────────────────────────────────────
 
 run_step "ssGSEA" \

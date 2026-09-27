@@ -317,6 +317,7 @@ def preprocess_tcga(
                 "scGPT": None,
                 "STATE": None,
                 "CancerFoundation": None,
+                "UCE": None,
                 "BulkFormer": None,
                 "COMPASS": None,
                 "BulkRNABert": None

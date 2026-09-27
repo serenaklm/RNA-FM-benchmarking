@@ -69,7 +69,7 @@ def load_foundation_model_embeddings(emb_folder: Path, sample_ids: List[str]) ->
     Returns:
         Dict mapping model_name -> {sample_id -> embedding as numpy array}
     """
-    model_names = ["scGPT", "STATE", "CancerFoundation", "BulkFormer", "BulkRNABert", "COMPASS"]
+    model_names = ["scGPT", "STATE", "CancerFoundation", "UCE", "BulkFormer", "BulkRNABert", "COMPASS"]
     embeddings = {name: {} for name in model_names}
     
     for model_name in model_names:
@@ -304,6 +304,7 @@ def get_embedding_for_sample(sample_id: str,
         "scGPT": all_embeddings["scGPT"].get(sample_id, np.zeros(default_dim)),
         "STATE": all_embeddings["STATE"].get(sample_id, np.zeros(default_dim)),
         "CancerFoundation": all_embeddings["CancerFoundation"].get(sample_id, np.zeros(default_dim)),
+        "UCE": all_embeddings["UCE"].get(sample_id, np.zeros(default_dim)),
         "BulkFormer": all_embeddings["BulkFormer"].get(sample_id, np.zeros(default_dim)),
         "BulkRNABert": all_embeddings["BulkRNABert"].get(sample_id, np.zeros(default_dim)),
         "COMPASS": all_embeddings["COMPASS"].get(sample_id, np.zeros(default_dim))

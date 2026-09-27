@@ -7,9 +7,9 @@
 # Tunes on IMVigor210 within-cohort splits (the largest ICI cohort),
 # mirroring the PFS approach of tuning on TCGA.
 #
-# Embeddings tuned (11 total — identical to PFS benchmarking):
-#   6 Foundation models : BulkFormer, BulkRNABert, COMPASS, scGPT, STATE,
-#                         CancerFoundation
+# Embeddings tuned (12 total — identical to PFS benchmarking):
+#   7 Foundation models : BulkFormer, BulkRNABert, COMPASS, scGPT, STATE,
+#                         CancerFoundation, UCE
 #   1 HVG               : RNA_seq_1250 (HPs shared across all HVG counts)
 #   2 Gene sets         : ssGSEA_combined + max_combined (one per pooling strategy;
 #                         HPs shared within strategy across all GS collections)
@@ -17,13 +17,12 @@
 #   1 Raw expression    : RNA_seq (all genes)
 #
 # Grid:
-#   11 embeddings × 2 archs × 5 splits = 110 jobs
+#   12 embeddings × 2 archs × 5 splits = 120 jobs
 #
 # Hardware:
 #   4 GPUs (IDs 0–3), up to MAX_PER_GPU=16 concurrent jobs per GPU.
-#   25 jobs per GPU → batch 1 (16 jobs) + batch 2 (9 jobs) per GPU.
+#   30 jobs per GPU → batch 1 (16 jobs) + batch 2 (14 jobs) per GPU.
 #   Estimated wall time: ~75 minutes (2 batches × ~37 min/batch at 50 trials × ~45s each).
-#   (110 jobs / 4 GPUs ≈ 28 jobs/GPU; 2 batches of 16+12)
 #
 # Outputs:
 #   logs/tune_ICI/               — per-job stdout/stderr logs
@@ -69,12 +68,12 @@ echo "============================================================"
 
 # ── Embeddings: "key:n_hvgs"  (n_hvgs=0 → None / no HVG filter) ─────────────
 # Matches PFS benchmarking exactly (agg_best_hps.py RNA_KEYS):
-#   6 FMs  — each tuned independently (different embedding dims/scales)
+#   7 FMs  — each tuned independently (different embedding dims/scales)
 #   1 HVG  — RNA_seq_1250; tuned HPs shared across all HVG counts
 #   2 GS   — one per pooling strategy (ssGSEA + max); HPs shared within strategy
 #   1 PCA  — PCA_50; tuned HPs shared with PCA_100
 #   1 Raw  — RNA_seq (all genes)
-# Total: 11 embeddings × 2 archs × 5 splits = 110 jobs
+# Total: 12 embeddings × 2 archs × 5 splits = 120 jobs
 EMBEDDINGS=(
   "BulkFormer:0"
   "BulkRNABert:0"
@@ -82,6 +81,7 @@ EMBEDDINGS=(
   "scGPT:0"
   "STATE:0"
   "CancerFoundation:0"
+  "UCE:0"
   "RNA_seq:1250"        # HVG representative (same as PFS)
   "ssGSEA_combined:0"   # ssGSEA pooling representative (same as PFS)
   "max_combined:0"      # max pooling representative (same as PFS)
@@ -92,7 +92,7 @@ EMBEDDINGS=(
 ARCHS=("Linear" "ResidualMLP")
 SPLITS=(0 1 2 3 4)
 
-# ── Build the full ordered list of 100 jobs ───────────────────────────────────
+# ── Build the full ordered list of jobs ───────────────────────────────────────
 ALL_JOBS=()
 for EMB in "${EMBEDDINGS[@]}"; do
   KEY="${EMB%%:*}"
