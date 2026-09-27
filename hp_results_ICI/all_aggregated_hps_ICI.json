@@ -1,0 +1,134 @@
+{
+  "BulkFormer_Linear_BCE": {
+    "lr": 0.0008009254442936516,
+    "weight_decay": 2.856442518349367e-06,
+    "penalty_weight": 0.000363747441261958
+  },
+  "BulkFormer_ResidualMLP_BCE": {
+    "lr": 3.556888235187835e-05,
+    "weight_decay": 6.473102580955586e-07,
+    "penalty_weight": 0.00029013180095970124,
+    "dropout_rate": 0.14869811603639357
+  },
+  "BulkRNABert_Linear_BCE": {
+    "lr": 0.0009153401424495623,
+    "weight_decay": 4.288199316375195e-06,
+    "penalty_weight": 0.0002887482427157246
+  },
+  "BulkRNABert_ResidualMLP_BCE": {
+    "lr": 0.00028588464542212414,
+    "weight_decay": 1.1132804334339392e-05,
+    "penalty_weight": 0.00013444424245536213,
+    "dropout_rate": 0.24377541061159141
+  },
+  "COMPASS_Linear_BCE": {
+    "lr": 0.0009966984896517574,
+    "weight_decay": 5.331063730932828e-06,
+    "penalty_weight": 0.00014324925685008994
+  },
+  "COMPASS_ResidualMLP_BCE": {
+    "lr": 0.0006001152218594501,
+    "weight_decay": 2.0426868587942064e-06,
+    "penalty_weight": 0.00020721250998025547,
+    "dropout_rate": 0.33033652112784684
+  },
+  "CancerFoundation_Linear_BCE": {
+    "lr": 0.0009941204848451148,
+    "weight_decay": 1.4044456850257634e-06,
+    "penalty_weight": 0.00010667668771470293
+  },
+  "CancerFoundation_ResidualMLP_BCE": {
+    "lr": 0.0004218172256261681,
+    "weight_decay": 1.6500196005177028e-06,
+    "penalty_weight": 0.00010145686010213632,
+    "dropout_rate": 0.36005324571864555
+  },
+  "PCA_50_Linear_BCE": {
+    "lr": 0.0005862725040884665,
+    "weight_decay": 9.184745220576687e-07,
+    "penalty_weight": 0.0034403403932417253
+  },
+  "PCA_50_ResidualMLP_BCE": {
+    "lr": 0.000619292665529722,
+    "weight_decay": 4.3836660654932104e-06,
+    "penalty_weight": 0.0038236783869377224,
+    "dropout_rate": 0.335953557489474
+  },
+  "RNA_seq_Linear_BCE": {
+    "lr": 0.00011342194135426271,
+    "weight_decay": 3.957960163304238e-06,
+    "penalty_weight": 0.00040261932255463584
+  },
+  "RNA_seq_ResidualMLP_BCE": {
+    "lr": 4.0034935843153205e-05,
+    "weight_decay": 2.0092478962793687e-06,
+    "penalty_weight": 0.00047706140073783997,
+    "dropout_rate": 0.16712195109515227
+  },
+  "RNA_seq_1250_Linear_BCE": {
+    "lr": 0.0005598244927728841,
+    "weight_decay": 2.1105286580710148e-06,
+    "penalty_weight": 0.0006744515014344947
+  },
+  "RNA_seq_1250_ResidualMLP_BCE": {
+    "lr": 0.00019344920971030383,
+    "weight_decay": 6.283021378997016e-06,
+    "penalty_weight": 0.001195793860684002,
+    "dropout_rate": 0.2431549756300523
+  },
+  "STATE_Linear_BCE": {
+    "lr": 0.0009487108540377415,
+    "weight_decay": 1.4071169658466398e-06,
+    "penalty_weight": 0.00010400561603283838
+  },
+  "STATE_ResidualMLP_BCE": {
+    "lr": 5.640098450727546e-05,
+    "weight_decay": 1.539490657260541e-06,
+    "penalty_weight": 0.00010042722199989388,
+    "dropout_rate": 0.2935100195283188
+  },
+  "UCE_Linear_BCE": {
+    "lr": 0.0006625465007573263,
+    "weight_decay": 7.111054583749409e-06,
+    "penalty_weight": 0.0004125049578009142
+  },
+  "UCE_ResidualMLP_BCE": {
+    "lr": 8.02615066417526e-05,
+    "weight_decay": 3.7413493892276985e-06,
+    "penalty_weight": 0.0001761480756015519,
+    "dropout_rate": 0.3037945184390979
+  },
+  "max_combined_Linear_BCE": {
+    "lr": 0.0004184060344804521,
+    "weight_decay": 9.233942751036223e-06,
+    "penalty_weight": 0.000842942182748023
+  },
+  "max_combined_ResidualMLP_BCE": {
+    "lr": 0.00016923568682796272,
+    "weight_decay": 3.2115763868456137e-06,
+    "penalty_weight": 0.00028123586144717923,
+    "dropout_rate": 0.2149618340852557
+  },
+  "scGPT_Linear_BCE": {
+    "lr": 0.0009275905233513348,
+    "weight_decay": 1.4746574932360767e-06,
+    "penalty_weight": 0.00014440532796811836
+  },
+  "scGPT_ResidualMLP_BCE": {
+    "lr": 0.0002134654280748122,
+    "weight_decay": 1.1845495700347681e-05,
+    "penalty_weight": 0.00010485653564440776,
+    "dropout_rate": 0.41714044702466824
+  },
+  "ssGSEA_combined_Linear_BCE": {
+    "lr": 0.0007970343554222192,
+    "weight_decay": 6.516885336450507e-07,
+    "penalty_weight": 0.0002929986081039673
+  },
+  "ssGSEA_combined_ResidualMLP_BCE": {
+    "lr": 0.00017240567687158928,
+    "weight_decay": 1.8732165409927245e-06,
+    "penalty_weight": 0.00018204638744767412,
+    "dropout_rate": 0.3075354480233151
+  }
+}

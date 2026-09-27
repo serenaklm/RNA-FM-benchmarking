@@ -1,944 +1,477 @@
-# Simple Baselines Outperform Transcriptomic Foundation Model Embeddings for Cancer Prognostic Modeling
+# Do Transcriptomic Foundation Models Improve Clinical Prediction?
 
-This repository contains the code for the paper **"Simple Baselines Outperform Transcriptomic Foundation Model Embeddings for Cancer Prognostic Modeling"** by Ananth Shyamal, Ling Min Serena Khoo, and Regina Barzilay (MIT CSAIL).
+Code for the paper **"Do Transcriptomic Foundation Models Improve Clinical Prediction?"** by Ananth Shyamal, Ling Min Serena Khoo, and Regina Barzilay (MIT CSAIL; University of Michigan Medical School).
 
-We benchmarked six state-of-the-art bulk and single-cell transcriptomic foundation models (FMs) against simple baseline dimensionality reduction methods for predicting cancer patient progression-free survival (PFS) from bulk tumor RNA-seq profiles. Across four diverse cancer cohorts (TCGA, Hartwig, CPTAC, TARGET-AML), simple baseline methods consistently outperformed all six foundation models.
+We benchmark seven bulk and single-cell transcriptomic foundation models (FMs) against four simple transcriptomic baselines on two clinical prediction tasks from bulk tumor RNA-seq:
+
+1. **Progression-free survival (PFS)** across four cancer cohorts (TCGA, Hartwig, CPTAC, TARGET-AML; 15,665 patients).
+2. **Immune checkpoint inhibitor (ICI) response** across five immunotherapy cohorts (628 patients) under three generalization paradigms: within-cohort, leave-one-cohort-out (LOCO), and cross-cohort transfer.
+
+**Main findings**
+- Every FM underperformed all four baselines for PFS prediction on TCGA (best FM: STATE-SE, C-index 0.728; best baseline: 5,000 HVGs, 0.742). The same trend held on Hartwig, CPTAC, and TARGET-AML, and in 27 of 33 TCGA cancer types.
+- For ICI response, most FMs underperformed the best baseline in all three paradigms. COMPASS, which was designed for ICI response prediction, only matched the gene-set baseline.
+- Linear probes and UMAPs show that FM embeddings capture primary tumor site and tumor grade less well than simple baselines.
+- Discretizing expression into bins, a step used by several FMs, consistently reduced HVG performance for PFS prediction.
+- LoRA fine-tuning of scGPT and CancerFoundation narrowed but did not close the gap to baselines.
+- The best transcriptomic models outperformed Cox models based on clinical covariates (primary tumor site, stage, demographics), so bulk RNA-seq does carry prognostic information that current FMs do not fully capture.
 
 ---
 
-## Table of Contents
+## Contents
 
-- [Overview](#overview)
-- [Repository Structure](#repository-structure)
-- [Datasets](#datasets)
+- [What is benchmarked](#what-is-benchmarked)
+- [Paper figures and tables → code](#paper-figures-and-tables--code)
+- [Repository structure](#repository-structure)
 - [Setup](#setup)
-- [Data Preprocessing](#data-preprocessing)
-  - [Dataset-Specific Preprocessing](#dataset-specific-preprocessing)
-  - [FM Embedding Extraction](#fm-embedding-extraction)
-  - [Baseline Embedding Computation](#baseline-embedding-computation)
-  - [Data Splits](#data-splits)
-- [Training](#training)
-  - [Main Benchmarking (Frozen Embeddings)](#main-benchmarking-frozen-embeddings)
-  - [Hyperparameter Tuning](#hyperparameter-tuning)
-  - [Clinical Baselines](#clinical-baselines)
-  - [Concatenation Experiment (FM + HVG)](#concatenation-experiment-fm--hvg)
-  - [Fine-Tuning Experiment](#fine-tuning-experiment)
-  - [Auxiliary Experiments](#auxiliary-experiments)
-- [Evaluation](#evaluation)
-- [Analysis](#analysis)
-- [Model Architecture & Loss Functions](#model-architecture--loss-functions)
-- [Configuration](#configuration)
-- [Outputs & Results](#outputs--results)
+- [Data](#data)
+- [PFS benchmark](#pfs-benchmark)
+- [ICI response benchmark](#ici-response-benchmark)
+- [Additional analyses](#additional-analyses)
+- [Model details](#model-details)
+- [Outputs](#outputs)
+- [Other experiments in this repository](#other-experiments-in-this-repository)
 - [Contact](#contact)
 
 ---
 
-## Overview
+## What is benchmarked
 
-The benchmarking pipeline embeds bulk RNA-seq profiles using either transcriptomic foundation models or baseline dimensionality reduction methods, then trains a survival predictor (linear network or residual MLP) on top of the frozen embeddings to predict PFS. Performance is evaluated using Harrell's concordance index (C-index).
+**Foundation models (7)**, used as frozen feature extractors:
 
-**Foundation models evaluated:**
-- Bulk: BulkRNABert, BulkFormer, COMPASS
-- Single-cell: scGPT, STATE-SE, CancerFoundation
+| Model | Type | Input genes | Gene selection | Embedding dim |
+|---|---|---|---|---|
+| BulkRNABert | Bulk | 19,062 | All shared genes | 256 |
+| BulkFormer | Bulk | 20,010 | All shared genes | 640 |
+| COMPASS | Bulk | 15,672 | All shared genes (+ cancer type) | 44 |
+| scGPT | Single-cell | 5,000 | Top HVGs | 512 |
+| STATE-SE | Single-cell | 5,000 | Top HVGs | 2,058 |
+| CancerFoundation | Single-cell | 1,199 | Top HVGs | 256 |
+| UCE | Single-cell | 1,024 | Expression-weighted sampling | 1,280 |
 
-**Baselines evaluated:**
-- Highly variable genes (HVGs): k ∈ {18, 50, 132, 500, 729, 1250, 5000, 10000}
-- Gene-set-based methods (max pooling and ssGSEA): Hallmark, Immuno, AURORA, Combined gene sets
-- PCA: 50 and 100 components
-- Raw expression (no dimensionality reduction)
-- Clinical covariates (age, gender, stage, tumor location) via Cox PH
+Single-cell models treat each bulk sample as a pseudo single cell.
 
-**Cohorts:** TCGA (n=10,388), Hartwig (n=2,153), CPTAC (n=1,222), TARGET-AML (n=1,902)
+**Transcriptomic baselines (25 variants in 4 families):**
+- **HVGs:** top-*k* genes by log-scale variance, *k* ∈ {18, 44, 50, 132, 256, 500, 512, 640, 729, 1,250, 1,280, 2,058, 5,000, 10,000}. The sizes 44, 256, 512, 640, 1,280 and 2,058 match FM embedding dimensions (Figure S1). For PFS, HVGs are selected on each split's training set; for ICI, the TCGA variance ranking is used.
+- **Gene sets:** max pooling and ssGSEA over Hallmark (50 sets), Immuno (132), AURORA (729), and Combined (910).
+- **PCA:** 50 and 100 components, fit on each training split.
+- **Raw expression:** all protein-coding genes passing the expression filter.
+
+**Downstream predictors:** a linear layer and a residual MLP, each trained with a Cox partial-likelihood loss and a pairwise ranking (C-index) loss for PFS, and with class-weighted binary cross-entropy for ICI response.
+
+In total, 32 embeddings × 2 architectures × 2 losses × 2 seeds × 5 splits × 4 cohorts = 5,120 PFS models, plus the ICI models for each paradigm.
 
 ---
 
-## Repository Structure
+## Paper figures and tables → code
+
+Figures are written to `paper_figures/` by the two analysis notebooks.
+
+| Paper item | Content | Produced by | Output |
+|---|---|---|---|
+| Fig. 2A | TCGA PFS C-index per FM / baseline (with permutation-test stars) | `notebooks/analyze_PFS_benchmarking_results.ipynb` | `tcga_results_bar.png` |
+| Fig. 2B | Per-cancer-type ΔC-index on TCGA | PFS notebook | `TCGA_delta_cindex_dotplot.png` |
+| Fig. 2C | Best bulk FM / single-cell FM / baseline across 4 cohorts | PFS notebook | `all_datasets_results_radar.png` |
+| Fig. 2D | ICI AUPRC per category, 3 paradigms | `notebooks/analyze_ICI_benchmarking_results.ipynb` | `ICI_auprc_overview.png` |
+| Fig. S1 | FM vs. dimension-matched HVGs | PFS notebook | `fm_vs_matched_dim_baselines.png` |
+| Fig. S2 | Frozen vs. LoRA fine-tuned scGPT / CancerFoundation | PFS notebook | `finetune_comparison.png` |
+| Fig. S3 | Linear probing (primary tumor site, tumor grade) | `mech/linear_probing.py` → PFS notebook | `linear_probing_tcga_bars.png`, `linear_probing_heatmap_site_grade.png` |
+| Fig. S4 | TCGA UMAPs colored by site and grade | PFS notebook | `TCGA_UMAP_clinical_features.png` |
+| Fig. S5 | HVG binning ablation | `train/train_binned_HVG_model.py` → PFS notebook | `binned_HVG_ablation*.png` |
+| Figs. S6, S7 | Per-cancer-type heatmaps (TCGA, CPTAC) | PFS notebook | `TCGA_per_cancer_type_heatmap.png`, `CPTAC_per_cancer_type_heatmap.png` |
+| Fig. S8 | C-index vs. number of HVGs | PFS notebook | `hvg_line_chart.png` |
+| Table S6 | Hyperparameter search spaces and tuned embeddings | `train/tune.py`, `train/tune_ICI.py` | `hp_results/all_aggregated_hps.json`, `hp_results_ICI/all_aggregated_hps_ICI.json` |
+| Tables S8, S9 (clinical rows) | Clinical covariate Cox baselines | `train/train_simple_clinical_baseline.py` | `benchmarking_results/clinical_baseline_results*.csv` |
+| Table S9 | PFS C-index per category, 4 cohorts | PFS notebook | `benchmarking_results/transcriptomic/*_survival_PFS_agg_filtered.csv` |
+| Table S10 | ICI AUPRC per category, 3 paradigms | ICI notebook | printed summary; `benchmarking_results/ICI/per_task_best_auprc.csv` |
+| Table S11 | Cancer types where FMs beat baselines | PFS notebook | `benchmarking_results/transcriptomic/fm_vs_baseline_cancer_type_summary.csv` |
+| Table S12 | Binned HVGs vs. FMs with native binning | PFS notebook | — |
+| Sign-flip permutation tests (Note S1E) | FM vs. best baseline, per dataset | PFS notebook | `benchmarking_results/stats/permutation_test_results.csv` |
+
+---
+
+## Repository structure
 
 ```
 RNA-FM-benchmarking/
+├── configs/
+│   ├── all_models.yaml                 # Main PFS config (data paths, splits, trainer, defaults)
+│   ├── immunotherapy_cohorts.yaml      # ICI cohort registry (paths, cancer type, COMPASS codes)
+│   ├── finetune.yaml                   # LoRA / fine-tuning config
+│   └── all_models_HVG_pooling.yaml     # Config for the HVG-pooled FM experiment
 │
-├── configs/                          # YAML configuration files
-│   ├── all_models.yaml               # Main config for frozen-embedding experiments
-│   ├── all_models_HVG_pooling.yaml   # Config for HVG-pooled FM embedding experiments
-│   └── finetune.yaml                 # Config for fine-tuning experiments (LoRA / full FT)
+├── data_preprocessing/
+│   ├── TCGA/ Hartwig/ CPTAC/ TARGET_AML/   # Per-cohort preprocessing notebooks + embedding assembly
+│   ├── immunotherapy_cohorts/          # ICI cohort processing (GEO + EGA) and embedding assembly
+│   ├── get_FM_embeddings/              # FM embedding extraction (BulkRNABert, BulkFormer, COMPASS,
+│   │                                   #   scGPT, STATE, UCE; CancerFoundation via its own repo)
+│   ├── add_UCE_to_RNA_embeddings.py    # Merge UCE embeddings into the per-cohort .pkl files
+│   ├── compute_PCA.py                  # PCA projections
+│   ├── get_ssGSEA_scores.py            # ssGSEA gene-set scores
+│   ├── get_genes_sets.py, dict_to_gmt.py
+│   ├── get_data_splits.py              # PFS splits (5 × 70/15/15, patient-level)
+│   ├── get_ICI_data_splits.py          # ICI splits for within-cohort / LOCO / transfer
+│   └── tokenize_for_finetuning/        # Pre-tokenization for FM fine-tuning
 │
-├── data/                             # Processed data (not included; see Datasets section)
-│   ├── RNA_embeddings/               # Processed per-dataset .pkl files with all embeddings
-│   └── tokens/                       # Pre-tokenized inputs for fine-tuning
-│
-├── splits/                           # Train/val/test split indices per dataset
-│   ├── TCGA_cleaned/
-│   ├── Hartwig/
-│   ├── CPTAC/
-│   └── TARGET_AML/
-│
-├── data_preprocessing/               # All data processing scripts
-│   ├── preprocess_utils.py           # Shared preprocessing utility functions
-│   ├── get_data_splits.py            # Generate stratified train/val/test splits
-│   ├── compute_PCA.py                # Compute and save PCA embeddings
-│   ├── get_ssGSEA_scores.py          # Compute ssGSEA gene-set scores
-│   ├── get_genes_sets.py             # Load and manage gene set collections
-│   ├── dict_to_gmt.py                # Convert gene set dicts to GMT format
-│   ├── get_gene_length.py            # Utility for gene length annotation
-│   ├── TCGA/                         # TCGA-specific preprocessing
-│   │   ├── get_TCGA_embeddings.py    # Assemble TCGA processed .pkl with all embeddings
-│   │   ├── augment_TCGA_with_HVG_embeddings.py
-│   │   ├── process_tcga.ipynb        # Notebook: raw TCGA → h5ad
-│   │   └── process_cleaned_TCGA_clinical.ipynb
-│   ├── Hartwig/                      # Hartwig-specific preprocessing
-│   │   ├── get_Hartwig_embeddings.py
-│   │   ├── get_Hartwig_RNA.py
-│   │   └── preprocess_Hartwig.ipynb
-│   ├── CPTAC/                        # CPTAC-specific preprocessing
-│   │   ├── get_CPTAC_embeddings.py
-│   │   └── preprocess_CPTAC.ipynb
-│   ├── TARGET_AML/                   # TARGET-AML-specific preprocessing
-│   │   ├── get_TARGET_AML_embeddings.py
-│   │   └── preprocess_TARGET_AML.ipynb
-│   ├── get_FM_embeddings/            # Scripts to extract FM embeddings
-│   │   ├── BulkRNABert.py
-│   │   ├── BulkFormer.py (via BulkFormer_HVG_pooling.py)
-│   │   ├── COMPASS.py
-│   │   ├── scGPT.py
-│   │   ├── STATE.py
-│   │   └── CancerFoundation (via official_bulkrnabert_embedding_extraction.py)
-│   └── tokenize_for_finetuning/      # Pre-tokenize data for fine-tuning
-│       ├── BulkRNABert_tokenize.py
-│       ├── BulkFormer_tokenize.py
-│       ├── scGPT_tokenize.py
-│       ├── STATE_tokenize.py
-│       ├── CancerFoundation_tokenize.py
-│       └── COMPASS_preprocess.py
-│
-├── scripts/                          # Shell scripts for running experiments
-│   ├── embeddings/                   # Embedding extraction orchestration
-│   │   ├── run_all_embeddings.sh     # Run all embedding types for a dataset
-│   │   ├── run_BulkRNABert.sh
-│   │   ├── run_BulkFormer.sh
-│   │   ├── run_COMPASS.sh
-│   │   ├── run_scGPT.sh
-│   │   ├── run_STATE.sh
-│   │   ├── run_CancerFoundation.sh
-│   │   ├── run_ssGSEA.sh
-│   │   └── get_data_preprocess_stats.sh
-│   ├── train_RNA_models.sh           # Main training script (frozen embeddings)
-│   ├── tune_RNA_models.sh            # Hyperparameter tuning via Optuna
-│   ├── train_RNA_models_clinical.sh  # Train clinical covariate Cox PH baselines
-│   ├── train_RNA_models_concat.sh    # Train FM + HVG concatenation models
-│   ├── train_TCGA_HVG_pooling.sh     # Train on HVG-pooled FM embeddings
-│   ├── train_binned_HVG_models.sh    # Train binned HVG ablation models
-│   ├── resume_binned_HVG_models.sh   # Resume partial binned HVG runs
-│   ├── train_finetune_BulkRNABert.sh # Fine-tune BulkRNABert (LoRA)
-│   ├── train_finetune_BulkFormer.sh  # Fine-tune BulkFormer (LoRA)
-│   ├── train_finetune_scGPT.sh       # Fine-tune scGPT (LoRA)
-│   ├── train_finetune_STATE.sh       # Fine-tune STATE-SE (LoRA)
-│   ├── train_finetune_COMPASS.sh     # Fine-tune COMPASS
-│   ├── train_finetune_CancerFoundation.sh
-│   ├── run_all_single_dataset.sh     # Launch all experiments for one dataset
-│   ├── run_eval_all_datasets.sh      # Evaluate all models across all datasets
-│   ├── run_eval_all_datasets_concat.sh
-│   ├── run_eval_all_datasets_clinical.sh
-│   ├── run_eval_binned_HVG.sh
-│   ├── run_compute_val_cindex.sh     # Compute validation C-indices
-│   ├── eval_finetune.sh              # Evaluate fine-tuned FM models
-│   └── run_linear_probing.sh         # Run linear probing experiment
-│
-├── train/                            # Python training modules
-│   ├── train_RNA_model.py            # Main training script for frozen-embedding models
-│   ├── train_RNA_model_HP_tune.py    # Single-trial training for Optuna
-│   ├── tune.py                       # Optuna HP tuning entry point
-│   ├── agg_best_hps.py               # Aggregate per-split HP results into one JSON
-│   ├── train_finetune.py             # Fine-tune a foundation model end-to-end
-│   ├── train_RNA_model_clinical.py   # Train clinical-only Cox PH baseline
-│   ├── train_simple_clinical_baseline.py
-│   ├── train_clinical_baseline.py    # Extended Cox PH with all clinical features
-│   ├── train_RNA_model_concat.py     # Train FM + HVG concatenated models
-│   ├── train_RNA_model_on_pooled_HVG_embeds.py  # Train on HVG-pooled FM embeddings
-│   └── train_binned_HVG_model.py     # Train binned HVG ablation models
-│
-├── val/
-│   └── compute_val_cindex.py         # Compute validation C-indices across all runs
-│
-├── test/                             # Evaluation modules
-│   ├── eval_all_RNA_models.py        # Evaluate all frozen-embedding models
-│   ├── eval_all_RNA_models_concat.py # Evaluate concatenation models
-│   ├── eval_all_RNA_models_clinical.py
-│   ├── eval_all_RNA_pooled_HVG.py    # Evaluate HVG-pooled FM models
-│   ├── eval_binned_HVG_models.py     # Evaluate binned HVG ablation models
-│   └── eval_finetune.py              # Evaluate fine-tuned FM models
-│
-├── pytorch_modules/                  # Core PyTorch model library
-│   ├── data/
-│   │   ├── data.py                   # DataModules for all datasets (survival/response)
-│   │   ├── finetune_data.py          # DataModules for fine-tuning (token-based)
-│   │   └── binned_data.py            # DataModule for binned HVG ablation
-│   ├── models/
-│   │   ├── survival_models.py        # RNA_SurvivalModel and RNA_ResponseModel (Lightning)
-│   │   └── finetune_models.py        # FM_REGISTRY: LoRA-wrapped FM models for fine-tuning
-│   ├── losses/
-│   │   ├── cindex_loss.py            # Pairwise ranking loss (logistic C-index approximation)
-│   │   ├── cox_loss.py               # Cox proportional hazards partial log-likelihood
-│   │   └── elastic_loss.py           # Elastic net regularization wrapper
-│   ├── nn/
-│   │   ├── residual_MLP.py           # 3-layer residual MLP architecture
-│   │   └── MLP.py                    # Standard MLP architecture
+├── pytorch_modules/
+│   ├── data/          # Lightning DataModules: data.py (PFS), ici_data.py (ICI),
+│   │                  #   binned_data.py (binning ablation), finetune_data.py (fine-tuning)
+│   ├── models/        # survival_models.py (PFS / response heads), finetune_models.py (LoRA FMs)
+│   ├── nn/            # MLP.py (linear), residual_MLP.py
+│   ├── losses/        # cox_loss.py, cindex_loss.py, elastic_loss.py
 │   └── utils/
-│       ├── utils.py                  # General utilities (config loading, pickle I/O, etc.)
-│       └── split_data.py             # Data splitting utilities
 │
-├── analysis/
-│   ├── extract_linear_weights.py     # Extract and rank gene weights from Linear CIndex models
-│   └── linear_gene_weights.pkl       # Saved gene weight outputs
-│
-├── notebooks/
-│   ├── analyze_results.ipynb         # Main results analysis and figure generation
-│   ├── analyze_hp_results.ipynb      # Hyperparameter tuning analysis
-│   ├── analyze_datasets.ipynb        # Dataset statistics and EDA
-│   └── analyze_clinical_metadata.ipynb
-│
-├── hp_results/                       # Hyperparameter tuning outputs
-│   └── all_aggregated_hps.json       # Aggregated best HPs per embedding/arch/loss
-│
-├── model_outputs/                    # Frozen-embedding model checkpoints and metrics
-├── model_outputs_finetune/           # Fine-tuned model checkpoints and metrics
-├── concat_model_outputs/             # FM + HVG concatenation model outputs
-├── benchmarking_results/             # Aggregated evaluation CSVs
-└── logs/                             # Training and evaluation logs
+├── train/             # Training entry points (PFS, ICI, tuning, clinical baseline, ablations)
+├── val/               # compute_val_cindex.py: validation C-index for model selection
+├── test/              # Evaluation entry points (PFS, ICI, COMPASS ICI, binning, fine-tuning)
+├── mech/              # linear_probing.py
+├── scripts/           # Shell launchers (multi-GPU sweeps); scripts/embeddings/ for FM extraction
+├── notebooks/         # analyze_PFS_benchmarking_results.ipynb, analyze_ICI_benchmarking_results.ipynb, …
+├── splits/            # Split files used in the paper (TCGA_cleaned, Hartwig, CPTAC, TARGET_AML, ICI)
+├── hp_results/        # PFS tuning results + all_aggregated_hps.json
+├── hp_results_ICI/    # ICI tuning results + all_aggregated_hps_ICI.json
+├── benchmarking_results/  # Aggregated metrics tables used for the paper
+└── paper_figures/     # Figures generated by the notebooks
 ```
 
----
-
-## Datasets
-
-Four cancer cohorts are used in this study:
-
-| Cohort | Patients | Samples | Cancer Type | Source |
-|--------|----------|---------|-------------|--------|
-| TCGA | 10,388 | 10,388 | Primary pan-cancer (33 types) | NCI GDC |
-| Hartwig | 2,153 | 2,232 | Metastatic pan-cancer | Hartwig Medical Foundation |
-| CPTAC | 1,222 | 1,222 | Primary pan-cancer | NCI GDC |
-| TARGET-AML | 1,902 | 2,586 | Pediatric AML | Xena Browser / NCI GDC |
-
-All datasets use RNA-seq data in TPM format. Genes with mean TPM < 0.1 across all samples were filtered out. Only protein-coding genes were retained for baseline methods; foundation models received all post-filter genes.
-
-### Downloading the Data
-
-- **TCGA & CPTAC**: Download from the [NCI GDC Data Portal](https://portal.gdc.cancer.gov/). Preprocessed TPM RNA-seq is queried via the GDC API. TCGA PFS labels are from the [TCGA Pan-Cancer Clinical Data Resource](https://gdc.cancer.gov/about-data/publications/PanCan-Clinical-2018).
-- **Hartwig**: Submit a data access request to the [Hartwig Medical Foundation](https://www.hartwigmedicalfoundation.nl/en/data/data-access-request/). Uses Isofox pipeline output.
-- **TARGET-AML**: TPM counts from the [Xena Browser](https://xenabrowser.net/); clinical data including PFS follow-up from the [GDC Portal](https://portal.gdc.cancer.gov/projects/TARGET-AML).
+Not included in the repository: `data/` (raw and processed data), `model_outputs*/` (checkpoints), `logs/`, and `wandb/`.
 
 ---
 
 ## Setup
 
-Each foundation model may require its own conda environment due to dependency conflicts. The core benchmarking environment is:
+The core benchmarking environment:
 
 ```bash
-conda create -n rna_modeling python=3.10
+conda env create -f env.yml        # or: conda create -n rna_modeling python=3.10 && pip install -r requirements.txt
 conda activate rna_modeling
-pip install -r requirements.txt
 ```
 
-The fine-tuning and embedding extraction scripts for some FMs use model-specific environments:
+Each FM's embedding extraction runs in its own environment because of dependency conflicts. The launchers in `scripts/embeddings/` activate the right one:
 
 | Model | Environment |
-|-------|-------------|
-| BulkRNABert, COMPASS | `rna_modeling` |
+|---|---|
+| BulkRNABert | `rna_modeling` |
 | BulkFormer | `bulkformer` |
-| CancerFoundation | `cancerfoundation` |
+| COMPASS | `compass` |
 | scGPT | `scgpt_env` |
 | STATE-SE | `state` |
+| CancerFoundation | `cancerfoundation` |
+| UCE | `uce` |
 
-All scripts are run from the **repository root** as Python modules (e.g., `python -m train.train_RNA_model`).
+Model weights and code for each FM come from the authors' releases. Several scripts contain absolute paths to our cluster (for example `/data/rbg/users/ashyamal/...`) for FM checkpoints and data; update these to your own locations.
+
+Run all Python entry points from the **repository root** as modules, for example `python -m train.train_RNA_model`.
 
 ---
 
-## Data Preprocessing
+## Data
 
-### Dataset-Specific Preprocessing
+### PFS cohorts
 
-Each dataset has a dedicated preprocessing notebook and embedding assembly script under `data_preprocessing/<DATASET>/`.
+| Cohort | Patients | Samples | Setting | Source |
+|---|---|---|---|---|
+| TCGA | 10,388 | 10,388 | Primary pan-cancer (33 types) | NCI GDC; PFS from the TCGA Pan-Cancer Clinical Data Resource |
+| Hartwig | 2,153 | 2,232* | Metastatic pan-cancer | Hartwig Medical Foundation (data access request) |
+| CPTAC | 1,222 | 1,222 | Primary pan-cancer | NCI GDC |
+| TARGET-AML | 1,902 | 2,586 | Pediatric AML | Xena Browser (TPM) + GDC (clinical) |
 
-**Steps (run from the dataset subdirectory or as indicated):**
+\*8 Hartwig samples were removed for data-access reasons, leaving 2,224 for model development.
 
-1. **TCGA**: `data_preprocessing/TCGA/process_tcga.ipynb` — converts raw GDC downloads to an h5ad file. `process_cleaned_TCGA_clinical.ipynb` handles PFS label cleaning from the Pan-Cancer Clinical Data Resource.
+### ICI cohorts
 
-2. **Hartwig**: `data_preprocessing/Hartwig/preprocess_Hartwig.ipynb` — aligns Isofox TPM output with clinical data to compute PFS.
+| Cohort | n | Responders | Cancer type | Source |
+|---|---|---|---|---|
+| IMvigor210 | 298 | 68 | Bladder urothelial | EGA EGAD00001003977 |
+| IMmotion150 | 165 | 48 | Renal cell | EGA EGAD00001004183 (atezolizumab arms only) |
+| Rose | 89 | 16 | Bladder urothelial | GEO GSE176307 |
+| Riaz | 51 | 10 | Melanoma | GEO GSE91061 |
+| Hugo | 25 | 13 | Melanoma | GEO GSE78220 |
 
-3. **CPTAC**: `data_preprocessing/CPTAC/preprocess_CPTAC.ipynb`
+Response labels (CR/PR vs. SD/PD) for Hugo, Riaz, and Rose come from the [COMPASS dashboard](https://www.immuno-compass.com/download/index.html). IMvigor210 and IMmotion150 were aligned with STAR against GENCODE v36 and converted to TPM, reproducing the GDC mRNA pipeline (Note S1, A.2).
 
-4. **TARGET-AML**: `data_preprocessing/TARGET_AML/preprocess_TARGET_AML.ipynb`
+### Common preprocessing
 
-After preprocessing, the per-dataset embedding assembly scripts consolidate all embeddings (FM embeddings, ssGSEA scores, PCA projections, raw expression, clinical features) into a single `.pkl` file per dataset used by the DataModules at training time:
+All data are TPM. Genes with mean TPM < 0.1 are removed. Baselines use protein-coding genes only. For the PFS cohorts, FMs receive all genes passing the filter and apply their own gene selection; for the ICI cohorts, all methods use protein-coding genes. ICI expression is aligned to the TCGA gene vocabulary (17,927 genes) so that features are defined consistently across cohorts.
+
+Download links and full details are in Note S1 of the Supplementary Information.
+
+---
+
+## PFS benchmark
+
+### 1. Preprocess each cohort
+
+Run the notebook in each `data_preprocessing/<COHORT>/` folder (`process_tcga.ipynb`, `preprocess_Hartwig.ipynb`, `preprocess_CPTAC.ipynb`, `preprocess_TARGET_AML.ipynb`). `TCGA/process_cleaned_TCGA_clinical.ipynb` adds the curated Pan-Cancer PFS labels.
+
+### 2. Extract FM embeddings
 
 ```bash
-python -m data_preprocessing.TCGA.get_TCGA_embeddings
+bash scripts/embeddings/run_all_embeddings.sh --dataset TCGA --gpu 0      # all FMs + ssGSEA
+
+# or individually:
+bash scripts/embeddings/run_BulkRNABert.sh      --dataset TCGA --gpu 0
+bash scripts/embeddings/run_BulkFormer.sh       --dataset TCGA --gpu 0
+bash scripts/embeddings/run_COMPASS.sh          --dataset TCGA --gpu 0
+bash scripts/embeddings/run_scGPT.sh            --dataset TCGA --gpu 0
+bash scripts/embeddings/run_STATE.sh            --dataset TCGA
+bash scripts/embeddings/run_CancerFoundation.sh --dataset TCGA --gpu 0
+bash scripts/embeddings/run_UCE.sh              --dataset TCGA --gpu 0
+```
+
+### 3. Compute baselines and assemble per-cohort data
+
+```bash
+bash scripts/embeddings/run_ssGSEA.sh --dataset TCGA       # gene-set scores
+
+python -m data_preprocessing.TCGA.get_TCGA_embeddings       # one .pkl per cohort with all embeddings
 python -m data_preprocessing.Hartwig.get_Hartwig_embeddings
 python -m data_preprocessing.CPTAC.get_CPTAC_embeddings
 python -m data_preprocessing.TARGET_AML.get_TARGET_AML_embeddings
+python data_preprocessing/add_UCE_to_RNA_embeddings.py      # add UCE embeddings
 ```
 
-The output `.pkl` files are stored in `data/RNA_embeddings/` and are the primary data inputs for all training scripts.
+The assembled files go to `data/RNA_embeddings/<COHORT>_processed*.pkl`. HVG selection and PCA are fit on each split's training set at training time.
 
-### FM Embedding Extraction
-
-Foundation model embeddings are extracted using the scripts in `data_preprocessing/get_FM_embeddings/`. A convenience wrapper runs all embedding types for a single dataset:
-
-```bash
-bash scripts/embeddings/run_all_embeddings.sh --dataset TCGA --gpu 0
-```
-
-Individual FM embedding scripts can also be run directly:
-
-```bash
-bash scripts/embeddings/run_BulkRNABert.sh --dataset TCGA --gpu 0
-bash scripts/embeddings/run_BulkFormer.sh  --dataset TCGA --gpu 0
-bash scripts/embeddings/run_COMPASS.sh     --dataset TCGA --gpu 0
-bash scripts/embeddings/run_scGPT.sh       --dataset TCGA --gpu 0
-bash scripts/embeddings/run_STATE.sh       --dataset TCGA
-bash scripts/embeddings/run_CancerFoundation.sh --dataset TCGA --gpu 0
-```
-
-**Notes:**
-- Single-cell FMs (scGPT, STATE-SE, CancerFoundation) require prior HVG selection (top 5,000 HVGs for scGPT/STATE; top 1,199 for CancerFoundation).
-- Bulk FMs (BulkRNABert, BulkFormer) use all shared genes with model-specific normalization (see paper Table 6).
-- COMPASS additionally requires cancer-type annotations (TCGA project ID format).
-- BulkRNABert embedding extraction is slow on CPU (~150 samples/hour); the `run_all_embeddings.sh` script omits it from the GPU pipeline by default.
-
-### Baseline Embedding Computation
-
-**PCA:**
-```bash
-cd data_preprocessing
-python compute_PCA.py --data_set TCGA
-```
-PCA is fit on training samples per split and projections (50 and 100 components) are stored per sample.
-
-**ssGSEA gene-set scores:**
-```bash
-bash scripts/embeddings/run_ssGSEA.sh --dataset TCGA
-# or directly:
-cd data_preprocessing
-python get_ssGSEA_scores.py --gene_set all --data_set TCGA
-```
-Gene-set collections used: Hallmark (50 sets), Immuno (132 sets from COMPASS developers), AURORA (729 sets), and Combined (910 sets after deduplication). Max pooling scores are computed inline during the embedding assembly step.
-
-### Data Splits
-
-Five independent 70/15/15% train/val/test splits are created per dataset at the patient level:
+### 4. Splits
 
 ```bash
 python -m data_preprocessing.get_data_splits
 ```
 
-Splits are stratified by cancer type (TCGA), organ group (CPTAC), or cancer type × treatment response (Hartwig). For Hartwig and TARGET-AML (multi-sample patients), all samples from a patient are assigned to the same split to prevent data leakage. Split indices are saved as `.pkl` files in `splits/<DATASET>/split_0.pkl` through `split_4.pkl`.
+This creates five patient-level 70/15/15 splits per cohort, stratified by cancer type (TCGA), organ (CPTAC), or cancer type × response (Hartwig). The exact splits used in the paper are in `splits/`.
 
----
+### 5. Hyperparameter tuning (TCGA)
 
-## Training
-
-All training scripts are run as Python modules from the **repository root**. Models are logged to Weights & Biases and checkpoints are saved locally.
-
-### Main Benchmarking (Frozen Embeddings)
-
-The primary training script is `train/train_RNA_model.py`. It supports all embedding types, both architectures (Linear, ResidualMLP), and both loss functions (Cox, CIndex).
-
-**Using the shell launcher** (recommended):
+We tuned 12 representative embeddings with Optuna TPE: the 7 FMs, 1,250 HVGs (shared by all HVG sizes), combined gene sets with max and ssGSEA pooling (shared within each pooling strategy), PCA-50 (shared with PCA-100), and raw expression. Each was tuned for every architecture × loss, with 50 trials per split on 5 splits.
 
 ```bash
-# Usage: ./scripts/train_RNA_models.sh <GPU_ID> <DATASET> <TASK> <EXPERIMENT> <ARCH> <LOSS_NAME>
-#
-# EXPERIMENT options:
-#   HVG        — all 8 HVG sizes (18, 50, 132, 500, 729, 1250, 5000, 10000)
-#   HVG1/2/3   — subsets of HVG sizes (for parallel execution)
-#   GS         — all gene-set embeddings (4 collections × 2 pooling strategies)
-#   SSGSEA     — ssGSEA pooling only
-#   MAX        — max pooling only
-#   HALLMARK   — Hallmark gene set only
-#   FM_BULK    — BulkFormer, BulkRNABert, COMPASS
-#   FM_SC      — scGPT, STATE, CancerFoundation
-#   PCA        — PCA with 50 and 100 components
-#   BASELINE   — raw expression (all genes, no dimensionality reduction)
-#   ALL        — all of the above
+# ./scripts/tune_RNA_models.sh <RNA_EMBEDDING_KEY> <ARCH> <LOSS_NAME>
+bash scripts/tune_RNA_models.sh BulkFormer   ResidualMLP CIndex
+bash scripts/tune_RNA_models.sh RNA_seq_1250 Linear      Cox
 
-# Examples:
-bash scripts/train_RNA_models.sh 0 TCGA   survival HVG      ResidualMLP CIndex
-bash scripts/train_RNA_models.sh 1 TCGA   survival FM_BULK  ResidualMLP Cox
-bash scripts/train_RNA_models.sh 2 Hartwig survival GS       Linear      CIndex
-bash scripts/train_RNA_models.sh 3 CPTAC  survival FM_SC    ResidualMLP CIndex
+python -m train.agg_best_hps     # → hp_results/all_aggregated_hps.json
 ```
 
-To run all experiments for a single dataset across multiple GPUs in parallel:
+The final hyperparameters are the geometric mean (learning rate, weight decay, penalty weight) or arithmetic mean (dropout) of the five per-split optima.
+
+| Hyperparameter | Range | Distribution |
+|---|---|---|
+| Learning rate | [1e-5, 1e-3] | Log-uniform |
+| Weight decay | [1e-7, 1e-4] | Log-uniform |
+| Penalty weight (elastic net) | [1e-4, 1e-2] | Log-uniform |
+| Dropout | [0.1, 0.5] | Uniform (residual MLP only) |
+
+### 6. Train
+
+```bash
+# ./scripts/train_RNA_models.sh <GPU_ID> <DATASET> survival <EXPERIMENT> <ARCH> <LOSS_NAME>
+#   EXPERIMENT: HVG | HVG1 | HVG2 | HVG3 | HVG4 (FM-matched sizes) | GS | SSGSEA | MAX |
+#               FM_BULK | FM_SC | PCA | BASELINE (raw expression) | ALL
+SEED=37 bash scripts/train_RNA_models.sh 0 TCGA survival FM_SC ResidualMLP CIndex
+SEED=42 bash scripts/train_RNA_models.sh 1 TCGA survival HVG   Linear      Cox
+```
+
+Already-completed runs are skipped. To run everything for one cohort across GPUs:
 
 ```bash
 bash scripts/run_all_single_dataset.sh TCGA
 ```
 
-This distributes experiments across GPUs 3, 5, 6, 7 and sweeps both seeds (37 and 42).
-
-**Running the Python script directly:**
+A single run:
 
 ```bash
 python -m train.train_RNA_model \
-  --config_path configs/all_models.yaml \
-  --dataset TCGA \
-  --task survival \
-  --arch ResidualMLP \
-  --loss_name CIndex \
-  --rna_embedding_key BulkFormer \
-  --seed 37 \
-  --split_idx 0 \
-  --hp_path hp_results/all_aggregated_hps.json
+  --config_path configs/all_models.yaml --dataset TCGA --task survival \
+  --arch ResidualMLP --loss_name CIndex --rna_embedding_key RNA_seq --n_HVGs 5000 \
+  --seed 37 --split_idx 0 --hp_path hp_results/all_aggregated_hps.json
 ```
 
-Key arguments:
-- `--rna_embedding_key`: embedding to use. Options include `BulkFormer`, `BulkRNABert`, `COMPASS`, `scGPT`, `STATE`, `CancerFoundation`, `RNA_seq` (with `--n_HVGs` for HVG selection), `PCA_50`, `PCA_100`, `ssGSEA_<collection>`, `max_<collection>`
-- `--n_HVGs`: number of HVGs when `rna_embedding_key=RNA_seq` (e.g., 1250, 5000, 10000)
-- `--arch`: `Linear` | `MLP` | `ResidualMLP`
-- `--loss_name`: `Cox` | `CIndex`
-- `--hp_path`: path to tuned hyperparameter JSON (produced by HP tuning step)
-
-### Hyperparameter Tuning
-
-Hyperparameters were tuned on TCGA using Optuna's Tree-structured Parzen Estimator (TPE) with 50 trials per configuration per split. Tuning is done for each embedding × architecture × loss combination.
+### 7. Evaluate
 
 ```bash
-# Usage: ./scripts/tune_RNA_models.sh <RNA_EMBEDDING_KEY> <ARCH> <LOSS_NAME>
-# Runs 5 splits in parallel across 2 GPUs.
-
-bash scripts/tune_RNA_models.sh BulkFormer    ResidualMLP CIndex
-bash scripts/tune_RNA_models.sh RNA_seq_1250  Linear      Cox
-bash scripts/tune_RNA_models.sh ssGSEA_combined ResidualMLP CIndex
+bash scripts/run_compute_val_cindex.sh     # validation C-index → model_outputs/<DATASET>/survival/PFS/val_metrics.csv
+bash scripts/run_eval_all_datasets.sh      # test C-index → model_outputs/<DATASET>/survival/PFS/all_metrics.csv
 ```
 
-Tuning results are written to `hp_results/` (one JSON per split). Aggregate the per-split results into a single file with:
+Architecture and loss are chosen per embedding on mean validation C-index, as is the best variant within each baseline family. We report mean test C-index over 5 splits × 2 seeds.
+
+### 8. Analyze
+
+Run `notebooks/analyze_PFS_benchmarking_results.ipynb` from top to bottom. It aggregates metrics, runs the sign-flip permutation tests, and writes the PFS figures and tables.
+
+---
+
+## ICI response benchmark
+
+### 1. Preprocess cohorts
+
+- Hugo, Riaz, Rose (GEO): `data_preprocessing/immunotherapy_cohorts/process_ICI_cohorts.ipynb`
+- IMvigor210, IMmotion150 (EGA, STAR/GENCODE v36 TPM):
+  ```bash
+  python data_preprocessing/immunotherapy_cohorts/process_ega_cohorts.py
+  ```
+
+Cohort metadata (cancer type, COMPASS cancer code, drug) is in `configs/immunotherapy_cohorts.yaml`.
+
+### 2. Embeddings, assembly, and splits
 
 ```bash
-python -m train.agg_best_hps
+bash scripts/embeddings/run_all_ICI_embeddings.sh      # FMs + ssGSEA + PCA for all 5 cohorts
+# or per cohort: bash scripts/embeddings/run_ICI_embeddings.sh --cohort Hugo --gpu 0
+
+for C in Hugo Riaz Rose IMMotion150 IMVigor210; do
+  python -m data_preprocessing.immunotherapy_cohorts.get_ICI_embeddings --cohort $C
+done
+python -m data_preprocessing.immunotherapy_cohorts.get_ICI_embeddings --merge   # → data/RNA_embeddings/ICI/ICI_all_processed.pkl
+
+python data_preprocessing/get_ICI_data_splits.py --paradigm within_cohort
+python data_preprocessing/get_ICI_data_splits.py --paradigm loco
+python data_preprocessing/get_ICI_data_splits.py --paradigm transfer
 ```
 
-This produces `hp_results/all_aggregated_hps.json`, which maps `<embedding_key>_<arch>_<loss>` → best hyperparameters. The same tuned HPs are reused across all datasets.
+**Paradigms**
+- **Within-cohort:** 5 stratified 70/15/15 splits per cohort. The paper reports IMvigor210 and IMmotion150.
+- **LOCO:** each cohort held out in turn; the other four are split 85/15 into train and validation.
+- **Transfer:** train on one source cohort (85/15 train/val), test on a different target cohort. The paper reports the 8 pairs with IMvigor210 or IMmotion150 as the source.
 
-**Hyperparameter search spaces:**
-
-| Hyperparameter | Range | Distribution |
-|----------------|-------|--------------|
-| Learning rate | [1e-5, 1e-3] | Log-uniform |
-| Weight decay | [1e-7, 1e-4] | Log-uniform |
-| Penalty weight | [1e-4, 1e-2] | Log-uniform |
-| Dropout rate | [0.1, 0.5] | Uniform (ResidualMLP only) |
-
-### Clinical Baselines
-
-Cox proportional hazards models trained on clinical covariates (age, gender, stage, tumor location):
+### 3. Tune, train, evaluate
 
 ```bash
-# Simple clinical baseline (age, gender, stage, location only):
-python -m train.train_simple_clinical_baseline
+bash scripts/tune_ICI_models.sh             # tuned on IMvigor210 within-cohort splits
+python -m train.agg_best_hps_ICI            # → hp_results_ICI/all_aggregated_hps_ICI.json
 
-# Extended clinical baseline (all available clinical features with missingness encoding):
-python -m train.train_clinical_baseline
+# ./scripts/train_ICI_models.sh <GPU_ID> <PARADIGM> <EXPERIMENT> <ARCH>
+bash scripts/train_ICI_models.sh 0 within_cohort FM_SC ResidualMLP
+bash scripts/run_all_ICI_benchmarking.sh    # full 8-GPU sweep over all paradigms
 
-# Via shell script (runs all 4 datasets):
-bash scripts/train_RNA_models_clinical.sh
+bash scripts/run_eval_ICI.sh 0              # → model_outputs/ICI/<paradigm>/<cohort_tag>/{all,val}_metrics.csv
 ```
 
-Clinical features per dataset are documented in the paper (Table 8). Patients with missing features are excluded from the simple baseline; the extended baseline (`train_clinical_baseline.py`) explicitly models missingness.
+The primary metric is AUPRC; AUROC, MCC, and macro F1 are also computed. For each paradigm, one architecture per embedding, and one variant per baseline family, is selected on validation AUPRC averaged over that paradigm's tasks.
 
-### Concatenation Experiment A — FM + HVG
+### 4. COMPASS fine-tuning
 
-Tests whether concatenating FM embeddings with the best-performing HVG baseline adds incremental value over either modality alone.
-
-The model input is the FM embedding and the log-normalized HVG expression vector scaled independently and then concatenated, passed to the same Linear / ResidualMLP + Cox / CIndex setup used in main benchmarking. The best-performing HVG count per dataset is used: TCGA: 10,000; Hartwig: 5,000; CPTAC & TARGET-AML: 1,250.
+Because COMPASS was built for ICI response, we also evaluate it with task-specific fine-tuning:
 
 ```bash
-# Runs all 4 datasets across 4 GPUs in parallel.
-# 2 archs × 2 losses × 6 FMs × 2 seeds × 5 splits = 120 runs per GPU.
-bash scripts/train_RNA_models_concat.sh
+bash scripts/train_compass_ICI.sh [--paradigm loco|within_cohort|transfer] [--mode LFT|PFT|FFT]
+bash scripts/eval_compass_ICI.sh  [--paradigm ...]
 ```
 
-Or a single configuration:
+### 5. Analyze
+
+Run `notebooks/analyze_ICI_benchmarking_results.ipynb` (Figure 2D, Table S10, per-cohort and COMPASS comparisons).
+
+---
+
+## Additional analyses
+
+### Clinical covariate baselines (Tables S8, S9)
+
+Cox proportional hazards models (`CoxPHSurvivalAnalysis`, L2 α = 0.1) fit on routinely collected clinical fields, using the same splits and one sample per patient:
 
 ```bash
-python -m train.train_RNA_model_concat \
-  --config_path configs/all_models.yaml \
-  --dataset TCGA \
-  --arch ResidualMLP \
-  --loss_name CIndex \
-  --fm_embedding_key BulkFormer \
-  --n_HVGs 10000 \
-  --seed 37 \
-  --split_idx 0 \
-  --hp_path hp_results/all_aggregated_hps.json
+python train/train_simple_clinical_baseline.py
+# → benchmarking_results/clinical_baseline_results.csv (per split) and clinical_baseline_results_wide.csv (table)
 ```
 
-Outputs are saved to `concat_model_outputs/`. Evaluate with:
+Covariate sets: demographics and stage; primary tumor site only; and both combined. For the GDC cohorts, stage and grade are taken from the primary-disease diagnosis record.
+
+### Linear probing (Figure S3) and UMAPs (Figure S4)
+
+Bias-free linear probes (cross-entropy, Adam, early stopping) are trained on every embedding to predict **primary tumor site** (macro F1) and **two-tier tumor grade** (low G1–G2 vs. high G3–G4; Cohen's κ). The paper reports TCGA; the script also runs CPTAC and Hartwig where labels exist.
 
 ```bash
-bash scripts/run_eval_all_datasets_concat.sh
-# or: python -m test.eval_all_RNA_models_concat --dataset TCGA --endpoint PFS
+bash scripts/run_linear_probing.sh          # → benchmarking_results/linear_probe/linear_probing_results.csv
+python -m mech.linear_probing --dataset TCGA --device cuda:0 --out_csv <path>   # single dataset
 ```
 
-### Concatenation Experiment B — FM + Clinical Features
+The UMAPs (TCGA; BulkFormer, BulkRNABert, STATE-SE, and 5,000 HVGs) are generated in the PFS notebook.
 
-Tests whether appending encoded clinical metadata to a frozen FM embedding improves PFS prediction. This is implemented in `train/train_RNA_model_clinical.py` and uses a dedicated `ClinicalConcatSurvivalDataModule` that:
+### Dimension-matched HVGs (Figure S1)
 
-1. Loads the FM (or raw RNA_seq) embedding for each patient from the standard `.pkl` file.
-2. Encodes clinical features from the raw clinical TSV **fit on training data only**, preventing leakage. The encoding strategy per feature type is:
-   - **Continuous** (e.g., age): z-score normalization + a binary `__missing` indicator flag
-   - **Ordinal** (e.g., AJCC stage): integer map (0–4) + `__missing` flag
-   - **Binary** (e.g., prior malignancy): {0, 1} (0.5 = unknown) + `__missing` flag
-   - **Categorical** (e.g., cancer type, race): one-hot with an explicit MISSING category; rare values (< 10 training samples) are grouped into OTHER
-3. Concatenates `[FM_embedding | clinical_features]` as the model input vector.
+HVG baselines with *k* equal to each FM's embedding size (`EXPERIMENT=HVG4` in `train_RNA_models.sh`) test whether the FM gap is explained by dimensionality.
 
-Clinical features used per dataset:
+### Expression binning ablation (Figure S5, Table S12)
 
-| Dataset | Features |
-|---------|----------|
-| TCGA | Project ID (cancer type), age, gender, race, AJCC stage (overall + T/N/M), prior malignancy, prior treatment, synchronous malignancy, tissue of origin, grade, residual disease, morphology, primary diagnosis |
-| CPTAC | Age, gender, race, AJCC stage (overall + T/N/M), tissue of origin, grade, residual disease, morphology, primary diagnosis |
-| Hartwig | Age at biopsy, gender, primary tumor location, pre-treatment (systemic), pre-treatment (radiotherapy) |
-| TARGET-AML | Age, gender, race, ethnicity |
-
-Embedding keys evaluated: all 6 FMs plus `RNA_seq` (raw expression).
+5,000 HVGs (TCGA) are discretized with six strategies (per-gene, global, or per-sample × linear or quantile) and 10 bin counts (2–1,024), mirroring the binning used by BulkRNABert (global linear, 64 bins) and by scGPT and CancerFoundation (per-sample quantile, 51 bins). Bin edges are fit on the training split only.
 
 ```bash
-# Runs all 4 datasets × 2 archs across 8 GPUs in parallel.
-# 2 losses × 7 FM keys × 2 seeds × 5 splits = 140 runs per GPU.
-bash scripts/train_RNA_models_clinical.sh
+bash scripts/train_binned_HVG_models.sh
+bash scripts/run_eval_binned_HVG.sh
 ```
 
-Or a single configuration:
+Implementation: `pytorch_modules/data/binned_data.py`, `train/train_binned_HVG_model.py`, `test/eval_binned_HVG_models.py`.
 
-```bash
-python -m train.train_RNA_model_clinical \
-  --config_path configs/all_models.yaml \
-  --dataset TCGA \
-  --arch ResidualMLP \
-  --loss_name CIndex \
-  --rna_embedding_key BulkFormer \
-  --seed 37 \
-  --split_idx 0 \
-  --hp_path hp_results/all_aggregated_hps.json \
-  --clinical_base /data/rbg/users/ashyamal/RNA-FM-benchmarking
-```
+### LoRA fine-tuning (Figure S2, Table S13)
 
-Outputs are saved to `clinical_concat_model_outputs/`. Evaluate with:
-
-```bash
-bash scripts/run_eval_all_datasets_clinical.sh
-# or: python -m test.eval_all_RNA_models_clinical --dataset TCGA --endpoint PFS
-```
-
-### Fine-Tuning Experiment
-
-Fine-tunes foundation model parameters end-to-end alongside a survival head, rather than using frozen embeddings. Transformer-based FMs use LoRA (Low-Rank Adaptation); COMPASS uses partial fine-tuning. Each FM requires its own conda environment (see Setup). The entry point is `train/train_finetune.py`.
-
-#### Step 1 — Pre-tokenize data
-
-Each FM has a dedicated tokenization script in `data_preprocessing/tokenize_for_finetuning/` that converts the raw h5ad expression data into model-specific token arrays and saves them as a single `.pkl` file: `{patient_id: np.array(...)}`. This needs to run once per FM per dataset before any fine-tuning.
+scGPT and CancerFoundation fine-tuned end-to-end on TCGA PFS with LoRA (r = 8, α = 16, dropout 0.05 on `out_proj`, `linear1`, `linear2`), a linear survival head, C-index loss, and an effective batch size of 128.
 
 ```bash
 cd data_preprocessing/tokenize_for_finetuning
-
-# BulkRNABert: bins each gene's log10(1+TPM) value into 64 linear bins.
-# Produces np.int8 arrays of shape (n_genes,).
-python BulkRNABert_tokenize.py --data_set TCGA
-python BulkRNABert_tokenize.py --data_set CPTAC
-python BulkRNABert_tokenize.py --data_set Hartwig
-python BulkRNABert_tokenize.py --data_set TARGET_AML
-
-# BulkFormer: maps each of the 20,010 genes to its ESM2-based gene identity
-# token and rotary expression embedding. Produces per-sample dicts.
-python BulkFormer_tokenize.py --data_set TCGA
-# ... (repeat for other datasets)
-
-# scGPT: selects top-5000 HVGs, rank-orders genes by expression per sample,
-# bins into 51 adaptive bins. Produces (gene_ids, values) token arrays.
 python scGPT_tokenize.py --data_set TCGA
-# ... (repeat for other datasets)
-
-# STATE-SE: selects top-5000 HVGs, applies soft binning into 10 learnable bins.
-# Produces token arrays with ESM2-based gene identity encoding.
-python STATE_tokenize.py --data_set TCGA
-# ... (repeat for other datasets)
-
-# CancerFoundation: selects top-1199 HVGs, applies adaptive per-sample bins.
-# Produces (gene_ids, expression_values) token arrays.
 python CancerFoundation_tokenize.py --data_set TCGA
-# ... (repeat for other datasets)
+cd ../..
 
-# COMPASS: maps each sample to its gene expression matrix aligned with COMPASS
-# gene vocabulary; also maps cancer types to TCGA project IDs.
-python COMPASS_preprocess.py --data_set TCGA
-# ... (repeat for other datasets)
-```
-
-Tokenized outputs are saved to `data/tokens/<FM>/<DATASET>_tokens.pkl`. These paths are configured per FM under `fm_configs.<FM>.tokens_paths` in `configs/finetune.yaml`.
-
-#### Step 2 — Fine-tune
-
-Each shell script runs 5 splits in parallel (one per GPU) and skips already-completed runs:
-
-```bash
-# Usage: ./scripts/train_finetune_<FM>.sh <DATASET>
-
-bash scripts/train_finetune_BulkRNABert.sh    TCGA
-bash scripts/train_finetune_BulkFormer.sh     TCGA
-bash scripts/train_finetune_scGPT.sh          TCGA
-bash scripts/train_finetune_STATE.sh          TCGA
-bash scripts/train_finetune_COMPASS.sh        TCGA
+bash scripts/train_finetune_scGPT.sh TCGA
 bash scripts/train_finetune_CancerFoundation.sh TCGA
-```
-
-Run a single split directly:
-
-```bash
-CUDA_VISIBLE_DEVICES=0 python -m train.train_finetune \
-  --config_path configs/finetune.yaml \
-  --dataset TCGA \
-  --fm_name BulkRNABert \
-  --loss_name CIndex \
-  --seed 37 \
-  --split_idx 0
-```
-
-#### Fine-tuning configuration details
-
-All settings are defined in `configs/finetune.yaml` under `fm_configs.<FM>`. Key parameters:
-
-| FM | Method | LoRA targets | r / α | lr | Batch | Grad accum |
-|----|--------|-------------|-------|----|-------|------------|
-| BulkRNABert | LoRA | `w_q`, `w_k`, `w_v` | 8 / 16 | 5e-4 | 32 | 4 |
-| BulkFormer | LoRA | `to_q`, `to_k`, `to_v`, `to_out` | 8 / 16 | 1e-5† | 6 | 22 |
-| scGPT | LoRA | `out_proj`, `linear1`, `linear2` | 8 / 16 | 1e-4 | 32 | 4 |
-| STATE-SE | LoRA | `qkv_proj`, `out_proj`, `linear1`, `linear2` | 8 / 16 | 1e-4 | 8 | 16 |
-| CancerFoundation | LoRA | `out_proj`, `linear1`, `linear2` | 8 / 16 | 1e-4 | 32 | 4 |
-| COMPASS | PFT‡ | N/A (no LoRA) | — | 1e-4 | 32 | 4 |
-
-† Lower lr due to Performer FAVOR+ kernel gradient instability; gradient checkpointing enabled.  
-‡ PFT = Partial Fine-Tuning: the input encoder is frozen, only the concept bottleneck and survival head are trained.
-
-The effective batch size is 128 for all FMs (batch × grad_accum). Max epochs: 100, early stopping patience: 20.
-
-Outputs are saved to `model_outputs_finetune/`. Evaluate with:
-
-```bash
-# Usage: ./scripts/eval_finetune.sh <FM_NAME> <DATASET>
-bash scripts/eval_finetune.sh BulkRNABert    TCGA
-bash scripts/eval_finetune.sh BulkFormer     TCGA
-bash scripts/eval_finetune.sh scGPT          TCGA
+bash scripts/eval_finetune.sh scGPT TCGA
 bash scripts/eval_finetune.sh CancerFoundation TCGA
-bash scripts/eval_finetune.sh COMPASS        TCGA
-bash scripts/eval_finetune.sh STATE          TCGA
-
-# Logs are written to: logs/eval_finetune/<DATASET>/<FM_NAME>.log
 ```
 
-### Auxiliary Experiments
-
-#### 1. Binned HVG Ablation
-
-**Motivation:** Foundation models tokenize gene expression into discrete bins before processing. This experiment tests whether that discretization step alone — independent of the transformer architecture — is responsible for any performance difference relative to continuous HVG baselines.
-
-**Method:** Continuous log-normalized HVG expression values are replaced with ordinal bin indices before being fed to the downstream survival model (ResidualMLP + CIndex). Bin edges are always fit on training data only and applied to validation and test sets. The best-performing HVG count per dataset is used as the fixed representation size (TCGA: 10,000; Hartwig: 5,000; CPTAC & TARGET-AML: 1,250).
-
-**Binning strategies** (implemented in `pytorch_modules/data/binned_data.py`):
-
-| Strategy | Description | Analogous FM |
-|----------|-------------|--------------|
-| `linear` | Equal-width bins per gene, spanning each gene's [min, max] across training samples | — |
-| `quantile` | Equal-frequency bins per gene (percentile-based) | — |
-| `global_linear` | Equal-width bins shared across all genes, spanning the global [min, max] | BulkRNABert |
-| `global_quantile` | Equal-frequency bins shared across all genes (flattened training matrix) | — |
-| `per_sample_linear` | Equal-width bins computed per sample | — |
-| `per_sample_quantile` | Equal-frequency bins computed per sample (per-sample rank-based) | scGPT, CancerFoundation |
-
-**Bin counts swept:** {2, 8, 16, 32, 51, 64, 128, 256, 512, 1024}
-
-Total runs: 10 bin counts × 6 strategies × 5 splits × 4 datasets = 1,200 models (distributed across 8 GPUs, 2 per dataset).
-
-```bash
-# Launch all datasets across 8 GPUs (strategies A on GPUs 0–3, strategies B on GPUs 4–7)
-bash scripts/train_binned_HVG_models.sh
-
-# Manual single-GPU mode:
-# ./scripts/train_binned_HVG_models.sh <GPU_ID> <DATASET> <STRATEGY...>
-bash scripts/train_binned_HVG_models.sh 0 TCGA linear global_linear per_sample_linear
-bash scripts/train_binned_HVG_models.sh 4 TCGA quantile global_quantile per_sample_quantile
-```
-
-Or a single run directly:
-
-```bash
-python -m train.train_binned_HVG_model \
-  --config_path configs/all_models.yaml \
-  --dataset TCGA \
-  --n_HVGs 10000 \
-  --n_bins 64 \
-  --bin_strategy global_linear \
-  --arch ResidualMLP \
-  --loss_name CIndex \
-  --seed 37 \
-  --split_idx 0 \
-  --hp_path hp_results/all_aggregated_hps.json
-```
-
-Outputs go to `model_outputs/<DATASET>/survival/PFS/binned_HVG_ablation/`. Evaluate with:
-
-```bash
-bash scripts/run_eval_binned_HVG.sh
-# or: python -m test.eval_binned_HVG_models --dataset TCGA
-```
-
-#### 2. Mean-Pooled FM Token Embeddings (HVG Pooling)
-
-**Motivation:** Standard FM inference uses the CLS token (or an equivalent pooled representation) as the sample embedding. However, both BulkRNABert and BulkFormer also produce a contextualized embedding for *each individual gene token*. This experiment tests whether averaging the per-gene token embeddings over a subset of HVGs — rather than using the CLS token — can improve the prognostic signal extracted from these models.
-
-**Method:** For BulkRNABert and BulkFormer, the model is run with `embeddings_layers_to_save` enabled to extract intermediate-layer per-gene embeddings. The gene-level embeddings for the top-k HVGs (selected by log-variance) are mean-pooled to produce a fixed-dimensional representation. This is implemented in `data_preprocessing/get_FM_embeddings/BulkRNABert_HVG_pooling.py` (and equivalently for BulkFormer).
-
-**HVG counts swept:**
-- BulkRNABert: {1,250; 5,000; 10,000}
-- BulkFormer: {1,250; 2,000; 5,000; 10,000}
-
-The embedding keys used in training are `BulkRNABert_HVG_<k>` and `BulkFormer_HVG_<k>`. This experiment was run on TCGA only, with both seeds and all 5 splits, using both architectures and loss functions (2 archs × 2 losses = 8 concurrent jobs per GPU).
-
-**Step 1 — Extract HVG-pooled embeddings** (run from `data_preprocessing/get_FM_embeddings/`):
-
-```bash
-python BulkRNABert_HVG_pooling.py --data_set TCGA
-```
-
-**Step 2 — Assemble into the main `.pkl` file:**
-
-```bash
-python -m data_preprocessing.TCGA.augment_TCGA_with_HVG_embeddings
-```
-
-**Step 3 — Train survival models:**
-
-```bash
-# GPU 6: BulkRNABert HVG sizes {1250, 5000, 10000}
-# GPU 7: BulkFormer  HVG sizes {1250, 2000, 5000, 10000}
-bash scripts/train_TCGA_HVG_pooling.sh
-```
-
-Or a single run:
-
-```bash
-python -m train.train_RNA_model_on_pooled_HVG_embeds \
-  --config_path configs/all_models_HVG_pooling.yaml \
-  --dataset TCGA \
-  --task survival \
-  --arch ResidualMLP \
-  --loss_name CIndex \
-  --rna_embedding_key BulkRNABert_HVG_10000 \
-  --seed 37 \
-  --split_idx 0 \
-  --hp_path hp_results/all_aggregated_hps.json
-```
-
-Outputs go to `model_outputs/HVG_pooling/TCGA/survival/PFS/`. Evaluate with:
-
-```bash
-python -m test.eval_all_RNA_pooled_HVG --dataset TCGA --endpoint PFS
-```
-
-#### 3. Linear Probing
-
-**Motivation:** Assesses how much *biological structure* is captured in each embedding representation — independently of prognostic modeling — by evaluating the linear separability of clinically meaningful categorical labels.
-
-**Method:** A bias-free linear classifier (`nn.Linear`, no bias) is trained on each embedding with cross-entropy loss and early stopping (patience = 50 epochs). The classifier is evaluated on three classification tasks, applied to the datasets where labels are available:
-
-| Task | Datasets | Metric |
-|------|----------|--------|
-| `cancer_type` — predict cancer type | TCGA, CPTAC, Hartwig | Accuracy, Macro F1 |
-| `organ` — predict primary tumor organ | TCGA, CPTAC, Hartwig | Accuracy, Macro F1 |
-| `grade` — predict tumor grade (AJCC) | TCGA, CPTAC | Accuracy, Macro F1, Quadratic Weighted Kappa |
-
-All 25 embedding specs from the main benchmarking are evaluated (6 FMs, 8 HVG sizes, 4 gene-set × pooling combos, 2 PCA configs, raw expression), across all 5 splits. Implemented in `mech/linear_probing.py`.
-
-```bash
-# Runs 4 datasets × 8 embedding-range workers in parallel across GPUs 4–7
-bash scripts/run_linear_probing.sh
-```
-
-The shell script splits the 25 embedding specs into 8 non-overlapping index ranges and runs them in parallel per dataset, then merges the partial CSVs:
-
-```bash
-# Direct invocation for a single dataset (all embeddings):
-python -m mech.linear_probing \
-  --dataset TCGA \
-  --device cuda:0 \
-  --out_csv benchmarking_results/linear_probe/linear_probing_results.csv
-
-# With embedding range (for parallelism, indices into EMBEDDING_SPECS list):
-python -m mech.linear_probing \
-  --dataset TCGA \
-  --device cuda:0 \
-  --emb_start 0 \
-  --emb_end 6 \
-  --out_csv benchmarking_results/linear_probe/tmp/partial_TCGA_0_6.csv
-```
-
-Supports `--overwrite` to rerun from scratch and incremental saving (results written after each dataset so no progress is lost on interruption). Results are written to `benchmarking_results/linear_probe/linear_probing_results.csv`.
+Settings are in `configs/finetune.yaml`.
 
 ---
 
-## Evaluation
+## Model details
 
-Each experiment type has its own evaluation script. Evaluation commands are co-located with their training instructions above. The table below summarizes all evaluation entry points:
+**Linear:** `Linear(d → 1)` (no bias for survival; bias for ICI classification).
 
-| Experiment | Eval script | Shell launcher |
-|------------|-------------|----------------|
-| Frozen embeddings (main benchmarking) | `test.eval_all_RNA_models` | `scripts/run_eval_all_datasets.sh` |
-| FM + HVG concatenation | `test.eval_all_RNA_models_concat` | `scripts/run_eval_all_datasets_concat.sh` |
-| FM + Clinical concatenation | `test.eval_all_RNA_models_clinical` | `scripts/run_eval_all_datasets_clinical.sh` |
-| Fine-tuned FMs | `test.eval_finetune` | `scripts/eval_finetune.sh <FM> <DATASET>` |
-| Binned HVG ablation | `test.eval_binned_HVG_models` | `scripts/run_eval_binned_HVG.sh` |
-| HVG-pooled FM embeddings | `test.eval_all_RNA_pooled_HVG` | — |
-| Linear probing | `mech.linear_probing` | `scripts/run_linear_probing.sh` |
+**Residual MLP:** `Linear(d → 512)` + GELU + dropout, followed by 3 residual blocks (two 512-dimensional FC layers with GELU and dropout, a skip connection, then ReLU and dropout) and `Linear(512 → 1, bias=False)`.
 
-### Frozen Embeddings (Main Benchmarking)
+**Losses** (`pytorch_modules/losses/`)
+- *Pairwise ranking (C-index):* logistic approximation over comparable pairs, $\frac{1}{|\mathcal{C}|}\sum_{(i,j)\in\mathcal{C}}\log(1+e^{-(r_i-r_j)})$.
+- *Cox:* negative partial log-likelihood, with risk sets approximated within each minibatch.
+- *ICI:* binary cross-entropy with a positive-class weight of 3.05 (pooled non-responder/responder ratio).
+- An elastic-net penalty (L1 + squared L2 on linear-layer weights), scaled by the tuned penalty weight, is added to every loss.
 
-```bash
-# All 4 datasets in parallel:
-bash scripts/run_eval_all_datasets.sh
+**Training:** batch size 128, 4 gradient-accumulation steps (effective batch size 512), AdamW, up to 500 epochs, early stopping patience 50, gradient clipping 1.5, seeds 37 and 42. Runs are logged to Weights & Biases.
 
-# Single dataset:
-CUDA_VISIBLE_DEVICES=0 python -m test.eval_all_RNA_models \
-  --dataset TCGA --task survival --endpoint PFS
-```
-
-The evaluator scans `model_outputs/<DATASET>/survival/PFS/` for run folders, loads each checkpoint, runs inference on the test set, and computes the C-index. Results are written to `all_metrics.csv` in the results directory.
-
-### Validation C-Index (for Model Selection)
-
-Computes validation C-indices across all runs to select the best architecture/loss configuration per embedding:
-
-```bash
-bash scripts/run_compute_val_cindex.sh
-# Runs all 4 datasets in parallel on GPUs 4–7; logs to logs/val_cindex/
-```
+**Statistics:** one-sided sign-flip permutation test (FM vs. best baseline) on per-split C-indices averaged over seeds. With 5 splits, the minimum possible p-value is 1/32 ≈ 0.031.
 
 ---
 
-## Analysis
+## Outputs
 
-The `notebooks/` directory contains Jupyter notebooks for analyzing results and generating paper figures:
+| Location | Contents |
+|---|---|
+| `model_outputs/<DATASET>/survival/PFS/` | PFS run folders + `all_metrics.csv` (test) and `val_metrics.csv` |
+| `model_outputs/ICI/<paradigm>/<cohort_tag>/` | ICI run folders + `all_metrics.csv` and `val_metrics.csv` |
+| `model_outputs/ICI/compass/` | COMPASS ICI fine-tuning runs |
+| `model_outputs_finetune/` | LoRA fine-tuning runs |
+| `benchmarking_results/transcriptomic/` | Aggregated PFS tables per cohort |
+| `benchmarking_results/ICI/` | Per-task ICI results |
+| `benchmarking_results/stats/` | Permutation test results |
+| `benchmarking_results/linear_probe/` | Linear probing results |
+| `hp_results/`, `hp_results_ICI/` | Tuning histories and aggregated hyperparameters |
 
-- **`analyze_results.ipynb`** — Main results analysis: loads the aggregated CSVs, computes mean C-index ± SD per embedding/dataset, generates the paper's main tables and heatmaps (Figures 3–5), and runs the sign-flip permutation test for statistical significance.
-- **`analyze_hp_results.ipynb`** — Analyzes hyperparameter tuning convergence and identifies best HPs across configurations.
-- **`analyze_datasets.ipynb`** — Dataset statistics: patient counts, gene count distributions, PFS event rates, cancer type breakdowns.
-- **`analyze_clinical_metadata.ipynb`** — Explores clinical feature availability and distributions across cohorts.
-
-### Extracting Linear Model Gene Weights
-
-The `analysis/extract_linear_weights.py` script loads trained Linear CIndex survival models and extracts the learned gene weights (mapping each gene to its contribution to the risk score), enabling identification of the most prognostically informative genes:
-
-```bash
-python analysis/extract_linear_weights.py
-# Output: analysis/linear_gene_weights.pkl
-```
+Run folders are named `{arch}_{loss}_rnaKey_{embedding}_nHVGs_{n}_seed_{seed}_split_{i}_{timestamp}/` and contain the checkpoint (`.ckpt`) and `config.json`.
 
 ---
 
-## Model Architecture & Loss Functions
+## Other experiments in this repository
 
-### Architectures
+The following experiments are implemented but **not reported in the paper**:
 
-Two downstream predictor architectures were evaluated (implemented in `pytorch_modules/nn/`):
-
-**ResidualMLP** (`pytorch_modules/nn/residual_MLP.py`):
-- Input projection: Linear(d_in → 512) + GELU + Dropout
-- 3 residual blocks: each with two FC layers (512 → 512), GELU activation, skip connection, and ReLU + Dropout
-- Output: Linear(512 → 1, bias=False)
-
-**Linear** (`pytorch_modules/nn/MLP.py`):
-- Single linear layer: Linear(d_in → 1, bias=False)
-
-Both are wrapped in `pytorch_modules/models/survival_models.py` as `RNA_SurvivalModel` (for survival tasks) and `RNA_ResponseModel` (for treatment response classification), implemented as PyTorch Lightning modules.
-
-### Loss Functions
-
-Two loss functions are implemented in `pytorch_modules/losses/`:
-
-**Pairwise Ranking Loss (CIndex)** — `cindex_loss.py`:
-Optimizes the C-index directly via a logistic approximation over comparable patient pairs (i, j) where patient i progresses before j:
-$$\mathcal{L}_{\text{rank}} = \frac{1}{|\mathcal{C}|} \sum_{(i,j) \in \mathcal{C}} \log(1 + e^{-(r_i - r_j)})$$
-
-**Cox Partial Log-Likelihood (Cox)** — `cox_loss.py`:
-Minimizes the negative Cox partial log-likelihood with Breslow tie handling and minibatch risk-set approximation (batch size 128 → effective batch size 512 with gradient accumulation):
-$$\mathcal{L}_{\text{Cox}} = -\frac{1}{\sum_i \delta_i} \sum_{i:\delta_i=1} \left( r_i - \log \sum_{j \in \mathcal{R}(t_i)} e^{r_j} \right)$$
-
-An elastic net penalty is applied on top of either loss via `elastic_loss.py`.
-
-### Training Details
-
-| Parameter | Value |
-|-----------|-------|
-| Batch size | 128 |
-| Effective batch size | 512 (4× gradient accumulation) |
-| Max epochs | 500 |
-| Early stopping patience | 50 epochs |
-| Gradient clipping | 1.5 |
-| Optimizer | AdamW |
-| Hardware | NVIDIA RTX A6000 (48 GB) |
-| Seeds | 37 and 42 |
-| Splits | 5 per dataset |
-
----
-
-## Configuration
-
-### `configs/all_models.yaml`
-
-The main configuration file for frozen-embedding experiments. Specifies:
-- Dataset-specific `.pkl` data paths (`data_paths`)
-- Dataset-specific split folders (`split_folders`)
-- Shared data settings (batch size, num workers, PFS endpoint)
-- Default model hyperparameters per architecture (lr, weight decay, hidden dim, dropout)
-- Trainer settings (max epochs, gradient clipping, gradient accumulation)
-- Callback settings (early stopping patience, monitor metric)
-
-### `configs/finetune.yaml`
-
-Configuration for fine-tuning experiments. Extends `all_models.yaml` with:
-- FM-specific LoRA settings (`lora_r`, `lora_alpha`, `lora_dropout`, `target_modules`)
-- FM-specific token file paths (`tokens_paths`)
-- FM-specific batch size and gradient accumulation overrides
-- Fine-tuning mode for COMPASS (`ft_mode: PFT`)
-
-### `configs/all_models_HVG_pooling.yaml`
-
-Configuration for the HVG-pooled FM embedding ablation experiment.
-
----
-
-## Outputs & Results
-
-| Directory | Contents |
-|-----------|----------|
-| `model_outputs/<DATASET>/survival/PFS/` | Frozen-embedding model checkpoints + `all_metrics.csv` |
-| `model_outputs/<DATASET>/survival/PFS/binned_HVG_ablation/` | Binned HVG ablation model checkpoints |
-| `model_outputs/HVG_pooling/<DATASET>/survival/PFS/` | Mean-pooled FM token embedding model checkpoints |
-| `model_outputs_finetune/<DATASET>/survival/PFS/` | Fine-tuned model checkpoints |
-| `concat_model_outputs/<DATASET>/survival/PFS/` | FM + HVG concatenation model checkpoints |
-| `hp_results/` | Per-split HP tuning JSONs + `all_aggregated_hps.json` |
-| `splits/<DATASET>/` | Train/val/test split `.pkl` files |
-| `benchmarking_results/` | Final aggregated evaluation CSVs |
-| `logs/` | Training and evaluation log files |
-
-Each run folder under `model_outputs/` is named:
-```
-{arch}_{loss}_rnaKey_{embedding_key}_nHVGs_{n}_seed_{seed}_split_{split_idx}_{timestamp}/
-```
-and contains a model checkpoint (`.ckpt`) and a run configuration file (`config.json`).
+- **FM + HVG concatenation:** `train/train_RNA_model_concat.py`, `scripts/train_RNA_models_concat.sh`, `test/eval_all_RNA_models_concat.py`
+- **FM + clinical-feature concatenation:** `train/train_RNA_model_clinical.py`, `scripts/train_RNA_models_clinical.sh`, `test/eval_all_RNA_models_clinical.py`
+- **Mean-pooled FM gene-token embeddings over HVGs:** `data_preprocessing/get_FM_embeddings/BulkRNABert_HVG_pooling.py`, `train/train_RNA_model_on_pooled_HVG_embeds.py`, `configs/all_models_HVG_pooling.yaml`
+- **Fine-tuning other FMs** (BulkRNABert, BulkFormer, STATE-SE, COMPASS): `scripts/train_finetune_<FM>.sh`
+- **Linear-model gene weights:** `analysis/extract_linear_weights.py`
 
 ---
 
 ## Contact
 
-- Ananth Shyamal — ashyamal@mit.edu
-- Ling Min Serena Khoo — klingmin@mit.edu
-- Regina Barzilay — regina@csail.mit.edu
+Corresponding authors: Ling Min Serena Khoo (klingmin@mit.edu) and Regina Barzilay (regina@csail.mit.edu).
+Code questions: Ananth Shyamal (ashyamal@mit.edu).

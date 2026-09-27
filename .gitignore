@@ -28,7 +28,7 @@ model_outputs_finetune/
 concat_model_outputs/
 clinical_concat_model_outputs/
 old_clinical_concat_model_outputs/
-val/
+/val/
 *.ckpt
 *.pt
 *.pth
@@ -38,7 +38,7 @@ val/
 # ============================================================
 # Data files
 # ============================================================
-data/
+/data/
 *.h5
 *.hdf5
 *.h5ad
