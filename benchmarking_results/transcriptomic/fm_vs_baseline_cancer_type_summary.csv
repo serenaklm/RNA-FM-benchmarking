@@ -1,5 +1,5 @@
 dataset,n_cancer_types,n_fm_wins,cancer_types_where_fm_wins,fraction of patients in winning cancer types
-CPTAC,9,1,"['Floor of mouth, NOS']",0.014729950900163666
-Hartwig,24,5,"['Gastrointestinal stromal tumor (GIST)', 'Hepatocellular carcinoma', 'Leiomyosarcoma', 'Non-small cell carcinoma (NSCLC), adenocarcinoma', 'Squamous cell carcinoma']",0.06675627240143368
+CPTAC,9,2,"['Floor of mouth, NOS', 'Larynx, NOS']",0.054009819967266774
+Hartwig,22,3,"['Melanoma', 'Mesothelioma', 'Non-small cell carcinoma (NSCLC), adenocarcinoma']",0.12365591397849462
 TARGET_AML,1,0,[],0.0
 TCGA,33,6,"['MESO', 'PAAD', 'PCPG', 'READ', 'THYM', 'UCEC']",0.12206391990758567

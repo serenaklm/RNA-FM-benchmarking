@@ -22,7 +22,7 @@
     "dropout_rate": 0.1892373749513615
   },
   "BulkRNABert_Linear_CIndex": {
-    "lr": 0.000956414406955556,
+    "lr": 0.0009564144069555559,
     "weight_decay": 1.3263026477390764e-06,
     "penalty_weight": 0.00010810300753496452
   },
@@ -88,7 +88,7 @@
     "dropout_rate": 0.35695657708752015
   },
   "PCA_50_Linear_CIndex": {
-    "lr": 0.0006932011145811535,
+    "lr": 0.0006932011145811534,
     "weight_decay": 5.19123930633853e-06,
     "penalty_weight": 0.002409901832235385
   },
@@ -104,7 +104,7 @@
     "dropout_rate": 0.1741710484191184
   },
   "PCA_50_ResidualMLP_Cox": {
-    "lr": 0.00043733194243275646,
+    "lr": 0.0004373319424327564,
     "weight_decay": 1.227055663920831e-06,
     "penalty_weight": 0.0007054146908899732,
     "dropout_rate": 0.21178159397405993
@@ -139,7 +139,7 @@
   "RNA_seq_17490_Linear_Cox": {
     "lr": 4.5568318325393065e-05,
     "weight_decay": 6.201932739756671e-07,
-    "penalty_weight": 0.008253546162087767
+    "penalty_weight": 0.008253546162087766
   },
   "RNA_seq_17490_ResidualMLP_CIndex": {
     "lr": 2.08283031746687e-05,
@@ -166,7 +166,7 @@
   "STATE_ResidualMLP_CIndex": {
     "lr": 3.558647658557857e-05,
     "weight_decay": 7.026720386073228e-07,
-    "penalty_weight": 0.00010133612553762925,
+    "penalty_weight": 0.00010133612553762924,
     "dropout_rate": 0.4565072164476092
   },
   "STATE_ResidualMLP_Cox": {
@@ -174,6 +174,28 @@
     "weight_decay": 2.4491333586501042e-06,
     "penalty_weight": 0.0001311238696355848,
     "dropout_rate": 0.24507368963563736
+  },
+  "UCE_Linear_CIndex": {
+    "lr": 0.0009631521154546152,
+    "weight_decay": 1.2089010928721334e-06,
+    "penalty_weight": 0.00010034020081990006
+  },
+  "UCE_Linear_Cox": {
+    "lr": 0.0008428944720203485,
+    "weight_decay": 2.3921893185287037e-06,
+    "penalty_weight": 0.00010034734775361787
+  },
+  "UCE_ResidualMLP_CIndex": {
+    "lr": 0.000787301604774366,
+    "weight_decay": 1.7783162507674113e-06,
+    "penalty_weight": 0.00010398430433067013,
+    "dropout_rate": 0.4093426936590815
+  },
+  "UCE_ResidualMLP_Cox": {
+    "lr": 0.0005593313113130905,
+    "weight_decay": 2.3011831750138695e-06,
+    "penalty_weight": 0.00010363949572470297,
+    "dropout_rate": 0.3257413246412209
   },
   "max_combined_Linear_CIndex": {
     "lr": 0.0006038978803099278,
@@ -194,7 +216,7 @@
   "max_combined_ResidualMLP_Cox": {
     "lr": 5.722508708957649e-05,
     "weight_decay": 2.9042267756377263e-06,
-    "penalty_weight": 0.00018937762284835228,
+    "penalty_weight": 0.00018937762284835225,
     "dropout_rate": 0.3724453871654541
   },
   "scGPT_Linear_CIndex": {

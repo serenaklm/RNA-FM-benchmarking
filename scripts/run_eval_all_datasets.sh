@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GPU=6
+GPU="${GPU:-6}"
 LOG_DIR="logs/eval"
 mkdir -p $LOG_DIR
 

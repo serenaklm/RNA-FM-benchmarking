@@ -39,7 +39,7 @@ TEST_LIST_HVG=(50)
 N_HVGS_LIST_1=(500 729 1250)
 N_HVGS_LIST_2=(18 50 5000)
 N_HVGS_LIST_3=(132 10000)
-N_HVGS_LIST_4=(44 256 512 640 2058)   # matches FM embedding dimensionalities
+N_HVGS_LIST_4=(44 256 512 640 1280 2058)   # matches FM embedding dimensionalities
 
 # Python module path (your new script)
 TRAIN_SCRIPT="train.train_RNA_model"
@@ -108,7 +108,7 @@ HALLMARK_KEYS=(
 )
 
 FM_BULK_KEYS=(BulkFormer BulkRNABert COMPASS)
-FM_SC_KEYS=(scGPT STATE CancerFoundation)
+FM_SC_KEYS=(scGPT STATE CancerFoundation UCE)
 
 PCA_KEYS=(PCA_50 PCA_100)
 

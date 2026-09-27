@@ -4,12 +4,15 @@ set -euo pipefail
 # ============================================================
 # Runs linear probing on 4 GPUs in parallel (one dataset per GPU).
 # Within each GPU, launches 8 processes in parallel, each handling
-# a non-overlapping slice of the 30 embedding specs.
+# a non-overlapping slice of the 32 embedding specs.
 # Partial CSVs are merged into a single output file at the end.
 #
 # Usage:
-#   ./scripts/run_linear_probing.sh
+#   ./scripts/run_linear_probing.sh              # uses GPUs 4 5 6 7
+#   GPUS="0 1 2 3" ./scripts/run_linear_probing.sh
 # ============================================================
+
+read -ra GPUS <<< "${GPUS:-4 5 6 7}"
 
 BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking"
 OUT_DIR="$BASE/benchmarking_results/linear_probe"
@@ -20,10 +23,10 @@ LOG_DIR="logs/linear_probing"
 
 mkdir -p "$OUT_DIR" "$TMP_DIR" "$LOG_DIR"
 
-# 30 embedding specs split into 8 non-overlapping ranges [start, end)
-# 4+4+4+4+4+4+3+3 = 30
-EMB_STARTS=( 0  4  8 12 16 20 24 27)
-EMB_ENDS=(   4  8 12 16 20 24 27 30)
+# 32 embedding specs split into 8 non-overlapping ranges [start, end)
+# 4+4+4+4+4+4+4+4 = 32
+EMB_STARTS=( 0  4  8 12 16 20 24 28)
+EMB_ENDS=(   4  8 12 16 20 24 28 32)
 
 run_dataset() {
     local DATASET="$1"
@@ -58,10 +61,10 @@ run_dataset() {
 }
 
 # Launch one dataset worker per GPU in parallel
-run_dataset TCGA       4 > "$LOG_DIR/TCGA_main.log"       2>&1 &
-run_dataset CPTAC      5 > "$LOG_DIR/CPTAC_main.log"      2>&1 &
-run_dataset Hartwig    6 > "$LOG_DIR/Hartwig_main.log"    2>&1 &
-run_dataset TARGET_AML 7 > "$LOG_DIR/TARGET_AML_main.log" 2>&1 &
+run_dataset TCGA       "${GPUS[0]}" > "$LOG_DIR/TCGA_main.log"       2>&1 &
+run_dataset CPTAC      "${GPUS[1]}" > "$LOG_DIR/CPTAC_main.log"      2>&1 &
+run_dataset Hartwig    "${GPUS[2]}" > "$LOG_DIR/Hartwig_main.log"    2>&1 &
+run_dataset TARGET_AML "${GPUS[3]}" > "$LOG_DIR/TARGET_AML_main.log" 2>&1 &
 
 wait
 echo "All dataset workers finished. Merging CSVs..."

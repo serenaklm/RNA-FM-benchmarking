@@ -10,6 +10,9 @@ __pycache__/
 dist/
 build/
 .eggs/
+misc/
+
+wandb_tmp/
 
 # ============================================================
 # Jupyter
@@ -69,3 +72,9 @@ wandb/
 *.tmp
 *.bak
 .env
+
+*.pdf
+
+old_*
+
+*.pdf

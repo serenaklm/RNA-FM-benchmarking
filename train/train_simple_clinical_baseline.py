@@ -10,7 +10,7 @@ from sksurv.metrics import concordance_index_censored
 
 
 # ----------------------- Clinical cleaning ----------------------------------
-BAD_VALUES = {"unknown", "not reported", "'--", "not applicable", "n/a", "na", "none", "", "NaN/null"}
+BAD_VALUES = {"unknown", "not reported", "'--", "not applicable", "n/a", "na", "none", "", "nan/null", "--"}
 
 def clean_clinical(df):
     """Replace any bad string values (case-insensitive) with NaN."""
@@ -21,6 +21,24 @@ def clean_clinical(df):
             return np.nan
         return x
     return df.apply(lambda col: col.map(_clean))
+
+
+def dedup_gdc_clinical(clinical, id_col):
+    """
+    Collapse a GDC clinical table (one row per diagnosis/treatment record) to one
+    row per patient. Must be called after clean_clinical.
+      - Non-diagnosis fields (demographics, project): first non-null value across rows.
+      - diagnoses.* fields: first non-null value among primary-disease diagnosis rows
+        only, so stage/grade never come from a recurrence or prior/other primary.
+    """
+    out = clinical.groupby(id_col).first()
+    flag = "diagnoses.diagnosis_is_primary_disease"
+    if flag in clinical.columns:
+        diag_cols = [c for c in clinical.columns if c.startswith("diagnoses.")]
+        is_primary = clinical[flag].astype(str).str.strip().str.lower() == "true"   # TCGA "True", CPTAC "true"
+        prim = clinical[is_primary].groupby(id_col)[diag_cols].first()
+        out[diag_cols] = prim.reindex(out.index)
+    return out
 
 
 # ----------------------------- CLI ------------------------------------------
@@ -51,11 +69,14 @@ stage_map = {
     # Stage 0
     'Stage 0': 0, 'Stage 0a': 0, 'Stage 0is': 0, 'Stage IS': 0,
     # Stage I
-    'Stage I': 1, 'Stage IA': 1, 'Stage IB': 1, 'Stage IB1': 1, 'Stage IC': 1,
+    'Stage I': 1, 'Stage IA': 1, 'Stage IA1': 1, 'Stage IA2': 1, 'Stage IA3': 1,
+    'Stage IB': 1, 'Stage IB1': 1, 'Stage IC': 1,
     # Stage II
     'Stage II': 2, 'Stage IIA': 2, 'Stage IIB': 2, 'Stage IIC': 2,
     # Stage III
     'Stage III': 3, 'Stage IIIA': 3, 'Stage IIIB': 3, 'Stage IIIC': 3,
+    'Stage IIIC1': 3, 'Stage IIIC2': 3,
+    # 'Stage X' (cannot be assessed) is intentionally unmapped -> treated as missing
     # Stage IV
     'Stage IV': 4, 'Stage IVA': 4, 'Stage IVB': 4, 'Stage IVC': 4,
 }
@@ -97,7 +118,7 @@ def load_dataset(dataset_name):
         clinical = clean_clinical(pd.read_csv(
             f"{BASE}/data/TCGA/clinical/clinical.tsv", sep="\t", low_memory=False
         ))
-        clinical_dedup = clinical.drop_duplicates(subset="cases.submitter_id").set_index("cases.submitter_id")
+        clinical_dedup = dedup_gdc_clinical(clinical, "cases.submitter_id")
         return patient_data, clinical_dedup, f"{BASE}/splits/TCGA_cleaned", None
 
     elif dataset_name == "CPTAC":
@@ -106,7 +127,11 @@ def load_dataset(dataset_name):
         clinical = clean_clinical(pd.read_csv(
             "/data/rbg/shared/datasets/CPTAC/clinical/clinical.tsv", sep="\t", low_memory=False
         ))
-        clinical_dedup = clinical.drop_duplicates(subset="cases.case_id").set_index("cases.case_id")
+        clinical_dedup = dedup_gdc_clinical(clinical, "cases.case_id")
+        # demographic.age_at_index is empty for CPTAC; age_at_diagnosis is in days
+        clinical_dedup["age_years"] = (
+            pd.to_numeric(clinical_dedup["diagnoses.age_at_diagnosis"], errors="coerce") / 365.25
+        )
         return patient_data, clinical_dedup, f"{BASE}/splits/CPTAC", None
 
     elif dataset_name == "Hartwig":
@@ -128,7 +153,7 @@ def load_dataset(dataset_name):
         clinical = clean_clinical(pd.read_csv(
             f"{BASE}/data/TARGET_AML/clinical/clinical.tsv", sep="\t", low_memory=False
         ))
-        clinical_dedup = clinical.drop_duplicates(subset="cases.submitter_id").set_index("cases.submitter_id")
+        clinical_dedup = dedup_gdc_clinical(clinical, "cases.submitter_id")
         return patient_data, clinical_dedup, f"{BASE}/splits/TARGET_AML", None
 
     else:
@@ -166,11 +191,12 @@ def get_base_features(dataset_name, row):
         return np.array([float(age), 1.0 if gender == "male" else 0.0, float(stage_map[stage])]), True
 
     elif dataset_name == "CPTAC":
+        age    = row.get("age_years", np.nan)
         gender = row.get("demographic.gender", np.nan)
         stage  = row.get("diagnoses.ajcc_pathologic_stage", np.nan)
-        if pd.isnull(gender) or stage not in stage_map:
+        if pd.isnull(age) or pd.isnull(gender) or stage not in stage_map:
             return None, False
-        return np.array([1.0 if gender == "male" else 0.0, float(stage_map[stage])]), True
+        return np.array([float(age), 1.0 if gender == "male" else 0.0, float(stage_map[stage])]), True
 
     elif dataset_name == "Hartwig":
         age    = row.get("age_at_biopsy", np.nan)
@@ -251,6 +277,7 @@ def print_dataset_summary(dataset_name, patient_data, clinical_dedup, all_sample
             genders.append(str(row.get("demographic.gender")))
             stages.append(str(row.get("diagnoses.ajcc_pathologic_stage")))
         elif dataset_name == "CPTAC":
+            ages.append(float(row.get("age_years")))
             genders.append(str(row.get("demographic.gender")))
             stages.append(str(row.get("diagnoses.ajcc_pathologic_stage")))
         elif dataset_name == "Hartwig":
@@ -410,7 +437,7 @@ def dump_feature_value_counts(dataset_name, patient_data, clinical_dedup, out_pa
     if dataset_name == "TCGA":
         fields = ["demographic.age_at_index", "demographic.gender", "diagnoses.ajcc_pathologic_stage"]
     elif dataset_name == "CPTAC":
-        fields = ["demographic.gender", "diagnoses.ajcc_pathologic_stage"]
+        fields = ["age_years", "demographic.gender", "diagnoses.ajcc_pathologic_stage"]
     elif dataset_name == "Hartwig":
         fields = ["age_at_biopsy", "gender"]
     elif dataset_name == "TARGET_AML":

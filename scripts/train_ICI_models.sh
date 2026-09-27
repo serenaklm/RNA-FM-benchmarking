@@ -64,7 +64,7 @@ SSGSEA_KEYS=(ssGSEA_AURORA ssGSEA_immuno ssGSEA_hallmark ssGSEA_combined)
 MAX_KEYS=(max_AURORA max_immuno max_hallmark max_combined)
 GS_KEYS=("${MAX_KEYS[@]}" "${SSGSEA_KEYS[@]}")
 FM_BULK_KEYS=(BulkFormer BulkRNABert COMPASS)
-FM_SC_KEYS=(scGPT STATE CancerFoundation)
+FM_SC_KEYS=(scGPT STATE CancerFoundation UCE)
 PCA_KEYS=(PCA_50 PCA_100)
 
 N_HVGS_LIST_DEFAULT=("None")
@@ -72,7 +72,7 @@ N_HVGS_LIST_HVG=(18 50 132 500 729 1250 5000 10000)
 N_HVGS_LIST_1=(500 729 1250)
 N_HVGS_LIST_2=(18 50 5000)
 N_HVGS_LIST_3=(132 10000)
-N_HVGS_LIST_4=(44 256 512 640 2058)   # matches FM embedding dimensionalities
+N_HVGS_LIST_4=(44 256 512 640 1280 2058)   # matches FM embedding dimensionalities
 TEST_LIST_HVG=(50)
 
 KEYS=()

@@ -80,6 +80,11 @@ run_step "CancerFoundation" \
   --dataset $DATASET \
   --gpu $GPU"
 
+run_step "UCE" \
+"bash scripts/embeddings/run_UCE.sh \
+  --dataset $DATASET \
+  --gpu $GPU"
+
 ########################################
 # CPU EMBEDDINGS
 ########################################

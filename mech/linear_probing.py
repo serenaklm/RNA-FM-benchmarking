@@ -2,12 +2,13 @@
 linear_probing.py
 
 Trains bias-free linear probes (nn.Linear, no bias) with cross-entropy to predict
-clinical labels from RNA embeddings across 4 datasets x 25 embeddings x 3 tasks x 5 splits.
+clinical labels from RNA embeddings across 4 datasets x 32 embeddings x 3 tasks x 5 splits.
 
 Tasks:
   cancer_type  — TCGA, CPTAC, Hartwig   — accuracy + macro F1
-  grade        — TCGA, CPTAC            — accuracy + macro F1 + quadratic weighted kappa
-  organ        — TCGA, CPTAC, Hartwig   — accuracy + macro F1
+  grade        — TCGA, CPTAC            — accuracy + macro F1 + Cohen's kappa
+                 (two-tier: low = G1/G2/Low Grade, high = G3/G4/High Grade; GX/GB excluded)
+  organ        — TCGA, CPTAC, Hartwig   — accuracy + macro F1  (primary tumor site)
 
 Usage:
   python -m mech.linear_probing
@@ -56,6 +57,7 @@ EMBEDDING_SPECS = [
     ("scGPT",            None),
     ("STATE",            None),
     ("CancerFoundation", None),
+    ("UCE",              None),
     # ssGSEA gene sets
     ("ssGSEA_AURORA",    None),
     ("ssGSEA_immuno",    None),
@@ -83,6 +85,7 @@ EMBEDDING_SPECS = [
     ("RNA_seq",          256),
     ("RNA_seq",          512),
     ("RNA_seq",          640),
+    ("RNA_seq",          1280),
     ("RNA_seq",          2058),
     # Full raw expression
     ("RNA_seq",          None),
@@ -93,7 +96,15 @@ COMPASS_MAPPING_PATHS = {
     "Hartwig": f"{BASE}/data/Hartwig/id_to_tcga_mapping.pkl",
 }
 
-BAD_VALUES = {"unknown", "not reported", "'--", "not applicable", "n/a", "na", "none", "", "nan/null"}
+BAD_VALUES = {"unknown", "not reported", "'--", "not applicable", "n/a", "na", "none", "", "nan/null", "--"}
+
+# Two-tier tumor grade. GDC tumor_grade mixes G1–G4, a two-tier High/Low Grade
+# system (e.g. BLCA), and non-ordinal codes (GX = cannot be assessed,
+# GB = borderline); the latter are excluded.
+GRADE_TWO_TIER = {
+    "G1": "low",  "G2": "low",  "Low Grade":  "low",
+    "G3": "high", "G4": "high", "High Grade": "high",
+}
 
 
 # ── Data loading (mirrors train_simple_clinical_baseline.py) ──────────────────
@@ -108,6 +119,24 @@ def clean_clinical(df):
     return df.apply(lambda col: col.map(_clean))
 
 
+def dedup_gdc_clinical(clinical, id_col):
+    """
+    Collapse a GDC clinical table (one row per diagnosis/treatment record) to one
+    row per patient. Must be called after clean_clinical.
+      - Non-diagnosis fields (demographics, project): first non-null value across rows.
+      - diagnoses.* fields: first non-null value among primary-disease diagnosis rows
+        only, so stage/grade never come from a recurrence or prior/other primary.
+    """
+    out = clinical.groupby(id_col).first()
+    flag = "diagnoses.diagnosis_is_primary_disease"
+    if flag in clinical.columns:
+        diag_cols = [c for c in clinical.columns if c.startswith("diagnoses.")]
+        is_primary = clinical[flag].astype(str).str.strip().str.lower() == "true"   # TCGA "True", CPTAC "true"
+        prim = clinical[is_primary].groupby(id_col)[diag_cols].first()
+        out[diag_cols] = prim.reindex(out.index)
+    return out
+
+
 def load_dataset(dataset_name):
     """Returns (patient_data, clinical_dedup, split_dir, sample_to_patient)."""
     if dataset_name == "TCGA":
@@ -116,7 +145,7 @@ def load_dataset(dataset_name):
         clinical = clean_clinical(pd.read_csv(
             f"{BASE}/data/TCGA/clinical/clinical.tsv", sep="\t", low_memory=False
         ))
-        clinical_dedup = clinical.drop_duplicates(subset="cases.submitter_id").set_index("cases.submitter_id")
+        clinical_dedup = dedup_gdc_clinical(clinical, "cases.submitter_id")
         return patient_data, clinical_dedup, f"{BASE}/splits/TCGA_cleaned", None
 
     elif dataset_name == "CPTAC":
@@ -125,7 +154,7 @@ def load_dataset(dataset_name):
         clinical = clean_clinical(pd.read_csv(
             "/data/rbg/shared/datasets/CPTAC/clinical/clinical.tsv", sep="\t", low_memory=False
         ))
-        clinical_dedup = clinical.drop_duplicates(subset="cases.case_id").set_index("cases.case_id")
+        clinical_dedup = dedup_gdc_clinical(clinical, "cases.case_id")
         return patient_data, clinical_dedup, f"{BASE}/splits/CPTAC", None
 
     elif dataset_name == "Hartwig":
@@ -145,7 +174,7 @@ def load_dataset(dataset_name):
         clinical = clean_clinical(pd.read_csv(
             f"{BASE}/data/TARGET_AML/clinical/clinical.tsv", sep="\t", low_memory=False
         ))
-        clinical_dedup = clinical.drop_duplicates(subset="cases.submitter_id").set_index("cases.submitter_id")
+        clinical_dedup = dedup_gdc_clinical(clinical, "cases.submitter_id")
         return patient_data, clinical_dedup, f"{BASE}/splits/TARGET_AML", None
 
     raise ValueError(f"Unknown dataset: {dataset_name}")
@@ -190,8 +219,7 @@ def get_label(task, rec, clinical_row):
         val = clinical_row.get("diagnoses.tumor_grade", np.nan)
         if pd.isnull(val):
             return None
-        val = str(val).strip()
-        return None if val.lower() in BAD_VALUES else val
+        return GRADE_TWO_TIER.get(str(val).strip())
 
     return None
 
@@ -256,11 +284,12 @@ def compute_metrics(task, y_true, y_pred):
     metrics = {
         "accuracy":       float(np.mean(y_true == y_pred)),
         "macro_f1":       float(f1_score(y_true, y_pred, average="macro", zero_division=0)),
-        "weighted_kappa": float("nan"),
+        "kappa":          float("nan"),
     }
     if task == "grade":
         try:
-            metrics["weighted_kappa"] = float(cohen_kappa_score(y_true, y_pred, weights="quadratic"))
+            # grade is binary (two-tier), so unweighted Cohen's kappa
+            metrics["kappa"] = float(cohen_kappa_score(y_true, y_pred))
         except Exception:
             pass
     return metrics
@@ -472,7 +501,7 @@ def main(args):
                             "dataset": dataset, "rna_key": rna_key, "n_hvgs": n_hvgs,
                             "task": task, "split": split_idx,
                             "n_train": None, "n_val": None, "n_test": None, "n_classes": None,
-                            "accuracy": None, "macro_f1": None, "weighted_kappa": None,
+                            "accuracy": None, "macro_f1": None, "kappa": None,
                             "error": str(e),
                         }
 
