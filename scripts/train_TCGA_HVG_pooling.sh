@@ -16,7 +16,8 @@ set -euo pipefail
 DATASET="TCGA"
 TASK="survival"
 CONFIG_PATH="./configs/all_models_HVG_pooling.yaml"
-HP_PATH="/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results/all_aggregated_hps.json"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HP_PATH="${REPO_ROOT}/hp_results/all_aggregated_hps.json"
 TRAIN_SCRIPT="train.train_RNA_model_on_pooled_HVG_embeds"
 
 ARCHS=(Linear ResidualMLP)
@@ -27,7 +28,7 @@ SEEDS=(37 42)
 LOGDIR="./logs/TCGA_HVG_pooling"
 mkdir -p "$LOGDIR"
 
-OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs/HVG_pooling/${DATASET}/survival/PFS"
+OUT_BASE="${REPO_ROOT}/model_outputs/HVG_pooling/${DATASET}/survival/PFS"
 
 # ---------------------------------------------------------------------------
 # run_key GPU KEY

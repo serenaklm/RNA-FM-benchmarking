@@ -111,7 +111,7 @@ def main(args):
     elif fm_name == "CancerFoundation":
         import sys
         from functools import partial
-        CF_DIR = "/data/rbg/users/ashyamal/CancerFoundation"
+        CF_DIR = os.environ.get("CANCERFOUNDATION_DIR", "/data/rbg/users/ashyamal/CancerFoundation")
         sys.path.insert(0, CF_DIR)
         from model.vocab import GeneVocab as CFGeneVocab
         vocab_file = os.path.join(CF_DIR, "model/assets/vocab.json")
@@ -261,7 +261,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--user", type=str, default="ashyamal-mit")
+    parser.add_argument("--user", type=str, default=None)
     parser.add_argument("--config_path", required=True, type=str)
     parser.add_argument(
         "--dataset",

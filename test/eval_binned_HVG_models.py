@@ -35,6 +35,8 @@ from pytorch_modules.data.binned_data import BinnedHVGSurvivalDataModule
 from pytorch_modules.models.survival_models import RNA_SurvivalModel
 from pytorch_modules.utils.utils import load_json
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 # ---------------------------------------------------------------------------
 # Regex to parse the run folder name produced by train_binned_HVG_model.py.
@@ -211,7 +213,7 @@ def main(args):
     dataset = args.dataset
 
     base = (
-        Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs")
+        REPO_ROOT / "model_outputs"
         / dataset / "survival" / "PFS" / "binned_HVG_ablation"
     )
     results_dir = Path(args.results_dir) if args.results_dir else base

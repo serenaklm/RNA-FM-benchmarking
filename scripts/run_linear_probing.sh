@@ -14,7 +14,9 @@ set -euo pipefail
 
 read -ra GPUS <<< "${GPUS:-4 5 6 7}"
 
-BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking"
+# Repository root: data/ and splits/ are read from here, results written to benchmarking_results/
+BASE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$BASE"
 OUT_DIR="$BASE/benchmarking_results/linear_probe"
 TMP_DIR="$OUT_DIR/tmp"
 FINAL_CSV="$OUT_DIR/linear_probing_results.csv"
@@ -43,6 +45,7 @@ run_dataset() {
         local LOG="$LOG_DIR/${DATASET}_${START}_${END}.log"
 
         OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -m "$SCRIPT" \
+            --base       "$BASE" \
             --dataset    "$DATASET" \
             --device     cuda:0 \
             --emb_start  "$START" \

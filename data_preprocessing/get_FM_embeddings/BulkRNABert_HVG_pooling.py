@@ -7,7 +7,7 @@ from tqdm import tqdm
 import argparse
 import json
 
-os.environ["HF_HOME"] = "/data/rbg/users/ashyamal/huggingface_cache"
+os.environ.setdefault("HF_HOME", "/data/rbg/users/ashyamal/huggingface_cache")
 
 import torch
 from transformers import AutoConfig, AutoModel, AutoTokenizer

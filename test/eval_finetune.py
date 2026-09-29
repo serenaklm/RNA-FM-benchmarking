@@ -30,6 +30,8 @@ from pytorch_modules.data.finetune_data import (
 )
 from pytorch_modules.models.finetune_models import FM_REGISTRY
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 # Matches both old format: finetune_{fm_name}_{loss}_seed_{seed}_split_{split}_{ts}
 # and new format:          finetune_{fm_name}_{loss}_{ft_mode}_seed_{seed}_split_{split}_{ts}
@@ -136,7 +138,7 @@ def eval_one_folder(model_folder: Path, dataset: str, use_gpu: bool, min_n: int,
     elif fm_name == "CancerFoundation":
         import sys
         from functools import partial
-        CF_DIR = "/data/rbg/users/ashyamal/CancerFoundation"
+        CF_DIR = os.environ.get("CANCERFOUNDATION_DIR", "/data/rbg/users/ashyamal/CancerFoundation")
         sys.path.insert(0, CF_DIR)
         from model.vocab import GeneVocab as CFGeneVocab
         vocab_file = os.path.join(CF_DIR, "model/assets/vocab.json")
@@ -214,7 +216,7 @@ def main(args):
     endpoint = args.endpoint
 
     base = (
-        Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs_finetune")
+        REPO_ROOT / "model_outputs_finetune"
         / dataset / "survival" / endpoint
     )
     results_dir = Path(args.results_dir) if args.results_dir else base

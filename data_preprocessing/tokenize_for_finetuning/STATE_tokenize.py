@@ -23,13 +23,15 @@ import os
 import sys
 import pickle
 import argparse
+from pathlib import Path
 
 import numpy as np
 import anndata
 from tqdm import tqdm
 
-STATE_REPO_DIR = "/data/rbg/users/ashyamal/state/src"
-STATE_MODEL_DIR = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/STATE/SE-600M"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+STATE_REPO_DIR = os.environ.get("STATE_REPO_DIR", "/data/rbg/users/ashyamal/state/src")
+STATE_MODEL_DIR = os.environ.get("STATE_MODEL_DIR", str(REPO_ROOT / "data" / "STATE" / "SE-600M"))
 
 PAD_LENGTH = 2048   # cfg.dataset.pad_length
 

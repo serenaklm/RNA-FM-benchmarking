@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-sys.path.insert(0, "/data/rbg/users/ashyamal/COMPASS")
+sys.path.insert(0, os.environ.get("COMPASS_DIR", "/data/rbg/users/ashyamal/COMPASS"))
 from compass import loadcompass
 
 

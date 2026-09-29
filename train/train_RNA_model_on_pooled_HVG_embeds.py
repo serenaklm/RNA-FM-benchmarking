@@ -12,8 +12,9 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies import DDPStrategy
 from pytorch_lightning.utilities.rank_zero import rank_zero_only
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+from pytorch_lightning.trainer.states import TrainerStatus
 
-from pytorch_modules.utils.utils import load_config, write_json, pickle_data
+from pytorch_modules.utils.utils import load_config, write_json, pickle_data, checkpoint_every_n_train_steps
 
 from pytorch_modules.data.data import (
     TCGADataModule,
@@ -247,7 +248,7 @@ def main(args):
         monitor=monitor,
         dirpath=results_dir,
         filename="{epoch:03d}-{val_loss:.5f}",
-        every_n_train_steps=config["trainer"]["log_every_n_steps"],
+        every_n_train_steps=checkpoint_every_n_train_steps(config, dataset_name),
         save_top_k=1,
         mode="min",
     )
@@ -289,6 +290,11 @@ def main(args):
     # Train
     trainer.fit(model_module, datamodule=data_module)
 
+    # Marks the run as finished; runs without it were interrupted (skipped by eval, redone by the launcher).
+    # Lightning catches Ctrl-C and returns from fit() normally, so check the final status.
+    if trainer.state.status == TrainerStatus.FINISHED and trainer.global_rank == 0:
+        open(os.path.join(results_dir, "done"), "w").close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -296,8 +302,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--user",
         type=str,
-        default="ashyamal-mit",
-        help="The wandb user ID",
+        default=None,
+        help="The wandb entity (default: your wandb default entity)",
     )
     parser.add_argument(
         "--config_path",

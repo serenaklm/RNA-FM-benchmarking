@@ -17,6 +17,7 @@ Usage:
 
 import argparse
 import copy
+import os
 import pickle
 from pathlib import Path
 
@@ -32,7 +33,11 @@ from tqdm import tqdm
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-BASE = "/data/rbg/users/ashyamal/RNA-FM-benchmarking"
+# Repository root (data/, splits/, benchmarking_results/); override with --base
+BASE = str(Path(__file__).resolve().parents[1])
+
+# Raw clinical/metadata tables (outside the repo)
+RAW_DATASETS_DIR = os.environ.get("RAW_DATASETS_DIR", "/data/rbg/shared/datasets")
 
 DATASETS = ["TCGA", "CPTAC", "Hartwig", "TARGET_AML"]
 
@@ -91,10 +96,11 @@ EMBEDDING_SPECS = [
     ("RNA_seq",          None),
 ]
 
-COMPASS_MAPPING_PATHS = {
-    "CPTAC":   f"{BASE}/data/CPTAC/id_to_tcga_mapping.pkl",
-    "Hartwig": f"{BASE}/data/Hartwig/id_to_tcga_mapping.pkl",
-}
+def compass_mapping_paths():
+    return {
+        "CPTAC":   f"{BASE}/data/CPTAC/id_to_tcga_mapping.pkl",
+        "Hartwig": f"{BASE}/data/Hartwig/id_to_tcga_mapping.pkl",
+    }
 
 BAD_VALUES = {"unknown", "not reported", "'--", "not applicable", "n/a", "na", "none", "", "nan/null", "--"}
 
@@ -152,7 +158,7 @@ def load_dataset(dataset_name):
         with open(f"{BASE}/data/RNA_embeddings/CPTAC_processed.pkl", "rb") as f:
             patient_data = pickle.load(f)
         clinical = clean_clinical(pd.read_csv(
-            "/data/rbg/shared/datasets/CPTAC/clinical/clinical.tsv", sep="\t", low_memory=False
+            f"{RAW_DATASETS_DIR}/CPTAC/clinical/clinical.tsv", sep="\t", low_memory=False
         ))
         clinical_dedup = dedup_gdc_clinical(clinical, "cases.case_id")
         return patient_data, clinical_dedup, f"{BASE}/splits/CPTAC", None
@@ -163,7 +169,7 @@ def load_dataset(dataset_name):
         with open(f"{BASE}/data/Hartwig/sample_to_patient_mapping.pkl", "rb") as f:
             sample_to_patient = pickle.load(f)
         metadata = pd.read_csv(
-            "/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/metadata.tsv", sep="\t"
+            f"{RAW_DATASETS_DIR}/Hartwig/isofox_tpm_update_4/metadata.tsv", sep="\t"
         )
         clinical_dedup = metadata.drop_duplicates(subset="sampleId").set_index("sampleId")
         return patient_data, clinical_dedup, f"{BASE}/splits/Hartwig", sample_to_patient
@@ -241,7 +247,9 @@ def get_embedding(rec, rna_key, n_hvgs):
 # ── Linear probe ──────────────────────────────────────────────────────────────
 
 def train_linear_probe(X_train, y_train, X_val, y_val, n_classes, device,
-                       lr=1e-3, max_epochs=500, patience=50):
+                       lr=1e-3, max_epochs=500, patience=50, seed=0):
+    # Seed the weight initialization so that reruns give identical probes
+    torch.manual_seed(seed)
     model = nn.Linear(X_train.shape[1], n_classes, bias=False).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
@@ -467,8 +475,8 @@ def main(args):
 
         # Load COMPASS valid IDs once per dataset
         compass_valid_ids = None
-        if dataset in COMPASS_MAPPING_PATHS:
-            with open(COMPASS_MAPPING_PATHS[dataset], "rb") as f:
+        if dataset in compass_mapping_paths():
+            with open(compass_mapping_paths()[dataset], "rb") as f:
                 compass_valid_ids = set(pickle.load(f).keys())
 
         total = len(emb_specs) * len(tasks_for_ds) * args.n_splits
@@ -524,8 +532,10 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out_csv", type=str,
-                        default=f"{BASE}/benchmarking_results/linear_probing_results.csv")
+    parser.add_argument("--base", type=str, default=BASE,
+                        help="Root holding data/ and splits/ (default: this repository)")
+    parser.add_argument("--out_csv", type=str, default=None,
+                        help="Default: {base}/benchmarking_results/linear_probe/linear_probing_results.csv")
     parser.add_argument("--device", type=str, default="cuda:0")
     parser.add_argument("--n_splits", type=int, default=5)
     parser.add_argument("--overwrite", action="store_true",
@@ -538,4 +548,7 @@ if __name__ == "__main__":
     parser.add_argument("--emb_end", type=int, default=len(EMBEDDING_SPECS),
                         help="End index into EMBEDDING_SPECS (exclusive)")
     args = parser.parse_args()
+    BASE = args.base
+    if args.out_csv is None:
+        args.out_csv = f"{BASE}/benchmarking_results/linear_probe/linear_probing_results.csv"
     main(args)

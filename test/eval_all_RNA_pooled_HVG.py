@@ -30,6 +30,8 @@ from pytorch_modules.data.data import (
 )
 from pytorch_modules.models.survival_models import RNA_SurvivalModel, RNA_ResponseModel
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 RUN_RE = re.compile(
     r"^(?P<arch>[^_]+)_(?P<loss>[^_]+)_rnaKey_(?P<rna_key>.+?)_nHVGs_(?P<n_hvgs>[\w]+)_seed_(?P<seed>\d+)_split_(?P<split>\d+)_"
@@ -295,7 +297,7 @@ def main(args):
     task = args.task
 
     # HVG_pooling subdirectory
-    base_root = Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs/HVG_pooling") / dataset
+    base_root = REPO_ROOT / "model_outputs" / "HVG_pooling" / dataset
 
     if task == "survival":
         endpoint = args.endpoint

@@ -391,6 +391,12 @@ def preprocess_cptac(
 
         organ = out.get("organ", None)
 
+        # One RNA file per case (tumor only) is selected in preprocess_CPTAC.ipynb. Previously
+        # tumor and normal files were both present and the last one silently overwrote the other.
+        if case_id in processed_data:
+            raise ValueError(f"Case {case_id} has more than one RNA sample "
+                             f"({processed_data[case_id]['rna_file']}, {rna_filename})")
+
         processed_data[case_id] = {
             # stable identifiers
             "case_id": case_id,

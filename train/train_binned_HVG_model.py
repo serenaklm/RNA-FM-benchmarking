@@ -36,7 +36,7 @@ from pytorch_lightning.utilities.rank_zero import rank_zero_only
 
 from pytorch_modules.data.binned_data import BinnedHVGSurvivalDataModule
 from pytorch_modules.models.survival_models import RNA_SurvivalModel
-from pytorch_modules.utils.utils import load_config, write_json
+from pytorch_modules.utils.utils import load_config, write_json, checkpoint_every_n_train_steps
 
 torch.set_float32_matmul_precision("high")
 
@@ -197,7 +197,7 @@ def main(args: argparse.Namespace) -> None:
         monitor=monitor,
         dirpath=results_dir,
         filename="{epoch:03d}-{val_loss:.5f}",
-        every_n_train_steps=config["trainer"]["log_every_n_steps"],
+        every_n_train_steps=checkpoint_every_n_train_steps(config, dataset_name),
         save_top_k=1,
         mode="min",
     )
@@ -237,7 +237,7 @@ if __name__ == "__main__":
         description="Train survival model on binned HVG embeddings."
     )
     parser.add_argument(
-        "--user", type=str, default="ashyamal-mit",
+        "--user", type=str, default=None,
         help="Weights & Biases user/entity ID.",
     )
     parser.add_argument(

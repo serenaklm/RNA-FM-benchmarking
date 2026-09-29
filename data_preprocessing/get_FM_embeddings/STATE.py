@@ -10,7 +10,9 @@ from tqdm import tqdm
 import argparse
 import json
 
-os.environ["HF_HOME"] = "/data/rbg/users/ashyamal/huggingface_cache"
+from fm_common import add_subset_args, restrict_to_samples, sample_ids_of
+
+os.environ.setdefault("HF_HOME", "/data/rbg/users/ashyamal/huggingface_cache")
 
 import torch
 from huggingface_hub import snapshot_download
@@ -31,6 +33,7 @@ parser.add_argument(
     '--data_dir', type=str, default=None,
     help='Override data directory. If set, reads/writes from {data_dir}/RNA/.',
 )
+add_subset_args(parser, hvg=True)
 args = parser.parse_args()
 
 print(f"Using data set: {args.data_set}")
@@ -56,8 +59,12 @@ if args.action == 'process_hvg':
     print("Sanmple IDs:", RNAseq_info.obs_names.astype(str)[:5].tolist())
 
     N_HVG = 5000
-    sc.pp.highly_variable_genes(RNAseq_info, n_top_genes=N_HVG, flavor='seurat_v3')
-    selected_genes = RNAseq_info.var['highly_variable'].index[RNAseq_info.var['highly_variable']].values.tolist()
+    # HVGs are selected on the whole cohort, or on --hvg_reference to keep a frozen list
+    hvg_source = ad.read_h5ad(args.hvg_reference) if args.hvg_reference else RNAseq_info
+    assert list(hvg_source.var_names) == list(RNAseq_info.var_names), "reference genes differ"
+    sc.pp.highly_variable_genes(hvg_source, n_top_genes=N_HVG, flavor='seurat_v3')
+    selected_genes = hvg_source.var['highly_variable'].index[hvg_source.var['highly_variable']].values.tolist()
+    RNAseq_info = restrict_to_samples(RNAseq_info, args.data_set, args.sample_ids)
     selected_genes = [g for g in selected_genes if g in captured_genes]
     print(f"There are {len(selected_genes)}")
     RNAseq_hvg = RNAseq_info[:, selected_genes]
@@ -108,25 +115,14 @@ elif args.action == 'extract_embeddings':
     STATE_emb = STATE_emb_info.obsm["X_state"]
 
     # Choose IDs to save by
-    if args.data_set == "TARGET_AML":
-        ids = STATE_emb_info.obs_names.astype(str).tolist()
-    elif args.data_set == "TCGA":
-        ids = STATE_emb_info.obs['cases.submitter_id'].astype(str).tolist()
-    elif 'patient_id' in STATE_emb_info.obs.columns:
-        ids = STATE_emb_info.obs['patient_id'].astype(str).tolist()
-    else:
-        # ICI cohorts: obs_names are the patient/sample IDs
-        ids = STATE_emb_info.obs_names.astype(str).tolist()
+    ids = sample_ids_of(STATE_emb_info, args.data_set)
 
     print(f"Computing embeddings for {len(ids)} patients/samples")
     print("Sanmple IDs:", ids[:5])
 
     for i, id_ in tqdm(enumerate(ids), total=len(ids)):
+        # Always overwrite: a skip-if-exists here silently kept stale embeddings on reruns
         current_output_path = os.path.join(output_folder, f"{id_}.pkl")
-        
-        if os.path.exists(current_output_path):
-            continue
-        
         emb = STATE_emb[i]            # same as STATE_emb[i:i+1][0], simpler
         pickle_data(emb, current_output_path)
 
@@ -134,8 +130,8 @@ elif args.action == 'extract_embeddings':
 Training command:
 
 state emb transform \
-  --model-folder /data/rbg/users/ashyamal/RNA-FM-benchmarking/data/STATE/SE-600M \
-  --input /data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CALGB/RNA/CALGB_40603_bulk_RNA_processed_log1p_HVG.h5ad \
-  --output /data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CALGB/RNA/FM_embeddings/STATE/CALGB_STATE_emb.h5ad
+  --model-folder <REPO_ROOT>/data/STATE/SE-600M \
+  --input <REPO_ROOT>/data/CALGB/RNA/CALGB_40603_bulk_RNA_processed_log1p_HVG.h5ad \
+  --output <REPO_ROOT>/data/CALGB/RNA/FM_embeddings/STATE/CALGB_STATE_emb.h5ad
 
 '''

@@ -10,6 +10,8 @@ import pickle
 import argparse
 import json
 
+from fm_common import add_subset_args, restrict_to_samples, sample_ids_of
+
 # Utils
 def load_pickle(path):
     with open(path, 'rb') as f:
@@ -32,11 +34,15 @@ parser.add_argument(
     help='Integer COMPASS cancer code (overrides per-dataset lookup). '
          'Required for ICI cohorts. See data/COMPASS/cancer_code.json.',
 )
+add_subset_args(parser)
 args = parser.parse_args()
 
 # No log-transformed
 adata_path = {
-    "TCGA": "../../data/TCGA/RNA/TCGA_bulk_RNA_raw.h5ad",
+    # Deduplicated (one tumor sample per patient) with all genes, like the raw file. The raw
+    # file has every RNA file per case, and embedding it kept the *last* file per patient, which
+    # differed from the sample used by all other methods.
+    "TCGA": "../../data/TCGA/RNA/TCGA_bulk_RNA_processed.h5ad",
     "CALGB": "../../data/CALGB/RNA/CALGB_bulk_RNA_processed.h5ad",
     "CPTAC": "../../data/CPTAC/RNA/CPTAC_bulk_RNA_processed.h5ad",
     "Hartwig": "../../data/Hartwig/RNA/Hartwig_bulk_RNA_processed.h5ad",
@@ -53,11 +59,14 @@ else:
 
 print(f"Reading {args.data_set} data from {raw_h5ad}...")
 adata = ad.read_h5ad(raw_h5ad)
+adata = restrict_to_samples(adata, args.data_set, args.sample_ids)
 
+# Sample -> TCGA project mappings written by each cohort's preprocessing notebook
+_ds_dir = args.data_dir or f"../../data/{args.data_set}"
 data_sets_with_cancer_info = {
-    "CPTAC": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CPTAC/obs_to_tcga_mapping.pkl",
-    "ICGC": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/ICGC/id_to_tcga_mapping.pkl",
-    "Hartwig": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/id_to_tcga_mapping.pkl"
+    "CPTAC": os.path.join(_ds_dir, "obs_to_tcga_mapping.pkl"),
+    "ICGC": os.path.join(_ds_dir, "id_to_tcga_mapping.pkl"),
+    "Hartwig": os.path.join(_ds_dir, "id_to_tcga_mapping.pkl"),
 }
 
 if args.data_set in data_sets_with_cancer_info:
@@ -78,15 +87,7 @@ df = pd.DataFrame(
 '''
 
 # Choose IDs to embed/save by
-if args.data_set == "TARGET_AML":
-    ids = adata.obs_names.astype(str).tolist()
-elif args.data_set == "TCGA":
-    ids = adata.obs['cases.submitter_id'].astype(str).tolist()
-elif 'patient_id' in adata.obs.columns:
-    ids = adata.obs['patient_id'].astype(str).tolist()
-else:
-    # ICI cohorts: obs_names are the patient/sample IDs
-    ids = adata.obs_names.astype(str).tolist()
+ids = sample_ids_of(adata, args.data_set)
 
 df = pd.DataFrame(
     adata.X,

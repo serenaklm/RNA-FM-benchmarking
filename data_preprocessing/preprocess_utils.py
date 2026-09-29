@@ -28,9 +28,11 @@ def one_hot_from_vocab(items: Optional[List[str]], vocab: List[str]) -> np.ndarr
     return np.array([1.0 if v in item_set else 0.0 for v in vocab], dtype=np.float32)
 
 def pickle_data(data, path):
-
-    with open(path, "wb") as f:
+    # Write to a temporary file and rename, so readers (e.g. training jobs) never see a partial file
+    tmp_path = f"{path}.tmp"
+    with open(tmp_path, "wb") as f:
         pickle.dump(data, f)
+    os.replace(tmp_path, path)
 
 def load_pickle(path): 
 
@@ -291,25 +293,19 @@ def ensure_genes_present(rna_seq_df: pd.DataFrame, gene_names: Dict[str, int]) -
     # Order genes by decreasing variability
     return rna_seq_df.loc[:, list(gene_names.keys())]
 
-def get_embedding_for_sample(sample_id: str, 
-                             all_embeddings: Dict[str, Dict[str, np.ndarray]],
-                             default_dim: int = 512) -> Dict[str, np.ndarray]:
+def get_embedding_for_sample(sample_id: str,
+                             all_embeddings: Dict[str, Dict[str, np.ndarray]]) -> Dict[str, Optional[np.ndarray]]:
     """
-    Get embeddings for a single sample, with default values if not found.
-    
+    Get embeddings for a single sample. A model with no embedding for the sample gets None, which
+    the data modules treat as missing and drop. (Previously a zero vector was returned, which
+    would be trained on as if it were a real embedding.)
+
     Returns:
-        Dict mapping model_name -> embedding array
+        Dict mapping model_name -> embedding array or None
     """
-    return {
-        "scGPT": all_embeddings["scGPT"].get(sample_id, np.zeros(default_dim)),
-        "STATE": all_embeddings["STATE"].get(sample_id, np.zeros(default_dim)),
-        "CancerFoundation": all_embeddings["CancerFoundation"].get(sample_id, np.zeros(default_dim)),
-        "UCE": all_embeddings["UCE"].get(sample_id, np.zeros(default_dim)),
-        "BulkFormer": all_embeddings["BulkFormer"].get(sample_id, np.zeros(default_dim)),
-        "BulkRNABert": all_embeddings["BulkRNABert"].get(sample_id, np.zeros(default_dim)),
-        "COMPASS": all_embeddings["COMPASS"].get(sample_id, np.zeros(default_dim))
-    }
-    
+    models = ["scGPT", "STATE", "CancerFoundation", "UCE", "BulkFormer", "BulkRNABert", "COMPASS"]
+    return {m: all_embeddings[m].get(sample_id) for m in models}
+
 def load_ssgsea_scores(ssgsea_folder: Path, dataset_name: str = "TCGA") -> Dict[str, pd.DataFrame]:
     """
     Load pre-computed ssGSEA score dataframes.

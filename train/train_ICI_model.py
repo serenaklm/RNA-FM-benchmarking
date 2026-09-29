@@ -253,7 +253,7 @@ def main(args):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
 
-    p.add_argument("--user", type=str, default="ashyamal-mit")
+    p.add_argument("--user", type=str, default=None)
     p.add_argument(
         "--config_path", required=True, type=str,
         help="Base training config (e.g. configs/all_models.yaml).",

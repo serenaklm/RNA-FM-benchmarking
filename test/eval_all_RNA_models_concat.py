@@ -28,6 +28,8 @@ from pytorch_modules.utils.utils import load_json, load_pickle
 from pytorch_modules.models.survival_models import RNA_SurvivalModel
 from train.train_RNA_model_concat import ConcatSurvivalDataModule, COMPASS_MAPPING_PATHS
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 # Matches concat run folder names:
 #   {arch}_{loss}_concat_{fm_key}_HVG{n_hvgs}_seed_{seed}_split_{split}_{timestamp}
@@ -189,7 +191,7 @@ def main(args):
     endpoint = args.endpoint
 
     base = (
-        Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/concat_model_outputs")
+        REPO_ROOT / "concat_model_outputs"
         / dataset / "survival" / endpoint
     )
     results_dir = Path(args.results_dir) if args.results_dir is not None else base

@@ -12,6 +12,9 @@ from collections import defaultdict
 from datetime import datetime
 import matplotlib.pyplot as plt
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RAW_DATASETS_DIR = os.environ.get("RAW_DATASETS_DIR", "/data/rbg/shared/datasets")
+
 def pickle_data(data, path):
 
     with open(path, "wb") as f:
@@ -106,7 +109,7 @@ def build_hartwig_filtered_anndata_unordered(
 if __name__ == "__main__":
     # Construct adata
     print("Constructing AnnData from Hartwig raw files...")
-    raw_dir = "/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/raw"
+    raw_dir = os.path.join(RAW_DATASETS_DIR, "Hartwig", "isofox_tpm_update_4", "raw")
 
     adata = build_hartwig_filtered_anndata_unordered(
         raw_dir=raw_dir,
@@ -126,7 +129,7 @@ if __name__ == "__main__":
     print(f"Constructed AnnData with shape {filtered_adata.shape}")
     print(filtered_adata)
     
-    filtered_adata.write_h5ad("/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/RNA/Hartwig_bulk_RNA_processed.h5ad")
+    filtered_adata.write_h5ad(REPO_ROOT / "data" / "Hartwig" / "RNA" / "Hartwig_bulk_RNA_processed.h5ad")
     print("Saved untransformed AnnData to h5ad.")
     
     # Construct log-transformed filtered_adata
@@ -136,7 +139,7 @@ if __name__ == "__main__":
     print(f"Constructed log-transformed AnnData with shape {log_adata.shape}")
     print(log_adata)
     
-    log_adata.write_h5ad("/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/RNA/Hartwig_bulk_RNA_processed_log1p.h5ad")
+    log_adata.write_h5ad(REPO_ROOT / "data" / "Hartwig" / "RNA" / "Hartwig_bulk_RNA_processed_log1p.h5ad")
     print("Saved log-transformed AnnData to h5ad.")
     
     

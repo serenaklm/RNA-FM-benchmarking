@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 
 # --- Configuration ---
-OUTPUT_DIR = "/data/rbg/users/ashyamal/data/expanded_TCGA_clinical_data"
+OUTPUT_DIR = os.environ.get("TCGA_CLINICAL_OUTPUT_DIR", "/data/rbg/users/ashyamal/data/expanded_TCGA_clinical_data")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 N_WORKERS = 8
 

@@ -22,12 +22,15 @@ All 12 layers are trainable (LoRA on out_proj, linear1, linear2).
 
 import json
 import os
+from pathlib import Path
 
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
 
-os.environ["HF_HOME"] = "/data/rbg/users/ashyamal/huggingface_cache"
+os.environ.setdefault("HF_HOME", "/data/rbg/users/ashyamal/huggingface_cache")
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # peft and transformers are only available in rna_modeling / scgpt_env.
 # Import them lazily inside the model classes that need them so this file
@@ -392,7 +395,7 @@ class BulkFormerFinetuneSurvivalModel(FMFinetuneSurvivalModel):
     BulkFormer repo directory specified in BULKFORMER_DIR.
     """
 
-    BULKFORMER_DIR = "/data/rbg/users/ashyamal/BulkFormer/BulkFormer"
+    BULKFORMER_DIR = os.environ.get("BULKFORMER_DIR", "/data/rbg/users/ashyamal/BulkFormer/BulkFormer")
 
     def _load_and_wrap_fm(self):
         import sys
@@ -498,7 +501,7 @@ class COMPASSFinetuneSurvivalModel(FMFinetuneSurvivalModel):
 
     def _load_and_wrap_fm(self):
         import sys
-        sys.path.insert(0, "/data/rbg/users/ashyamal/COMPASS")
+        sys.path.insert(0, os.environ.get("COMPASS_DIR", "/data/rbg/users/ashyamal/COMPASS"))
         from compass import loadcompass
 
         pretrainer = loadcompass(self.hf_model_id)
@@ -560,7 +563,7 @@ class CancerFoundationFinetuneSurvivalModel(FMFinetuneSurvivalModel):
     ``hf_model_id`` is unused — weights are loaded from CANCER_FOUNDATION_DIR.
     """
 
-    CANCER_FOUNDATION_DIR = "/data/rbg/users/ashyamal/CancerFoundation"
+    CANCER_FOUNDATION_DIR = os.environ.get("CANCERFOUNDATION_DIR", "/data/rbg/users/ashyamal/CancerFoundation")
 
     def _load_and_wrap_fm(self):
         import sys
@@ -659,8 +662,8 @@ class STATEFinetuneSurvivalModel(FMFinetuneSurvivalModel):
     ``hf_model_id`` is unused — checkpoint is loaded from STATE_MODEL_DIR.
     """
 
-    STATE_REPO_DIR = "/data/rbg/users/ashyamal/state/src"
-    STATE_MODEL_DIR = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/STATE/SE-600M"
+    STATE_REPO_DIR = os.environ.get("STATE_REPO_DIR", "/data/rbg/users/ashyamal/state/src")
+    STATE_MODEL_DIR = os.environ.get("STATE_MODEL_DIR", str(REPO_ROOT / "data" / "STATE" / "SE-600M"))
 
     def __init__(self, *args, lora_n_layers: int = -1, **kwargs):
         # Must be set before super().__init__() because _load_and_wrap_fm() is called there.

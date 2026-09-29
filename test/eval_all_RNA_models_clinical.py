@@ -28,6 +28,8 @@ from pytorch_modules.utils.utils import load_json, load_pickle
 from pytorch_modules.models.survival_models import RNA_SurvivalModel
 from train.train_RNA_model_clinical import ClinicalConcatSurvivalDataModule
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 # Matches clinical concat run folder names:
 #   {arch}_{loss}_clinical_concat_{fm_key}_seed_{seed}_split_{split}_{timestamp}
@@ -183,7 +185,7 @@ def main(args):
     endpoint = args.endpoint
 
     base = (
-        Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/clinical_concat_model_outputs")
+        REPO_ROOT / "clinical_concat_model_outputs"
         / dataset / "survival" / endpoint
     )
     results_dir = Path(args.results_dir) if args.results_dir is not None else base
@@ -298,7 +300,7 @@ if __name__ == "__main__":
     p.add_argument("--out_csv",     default=None, help="Where to write the CSV")
 
     p.add_argument("--clinical_base", type=str,
-                   default="/data/rbg/users/ashyamal/RNA-FM-benchmarking",
+                   default=str(REPO_ROOT),
                    help="Base directory for resolving clinical TSV paths (must match training)")
     p.add_argument("--min_cat_freq", type=int, default=10,
                    help="Must match value used during training (default: 10)")

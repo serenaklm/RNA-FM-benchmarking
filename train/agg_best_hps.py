@@ -3,9 +3,11 @@ import os
 import glob
 import numpy as np
 import json
+from pathlib import Path
 
-CSV_PATH = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results/tuning_history.csv"
-LOG_DIR = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+CSV_PATH = str(REPO_ROOT / "hp_results" / "tuning_history.csv")
+LOG_DIR = str(REPO_ROOT / "hp_results")
 
 RNA_KEYS = ["BulkFormer", "BulkRNABert", "COMPASS", "scGPT", "STATE", "CancerFoundation", "UCE", "RNA_seq_1250", "RNA_seq_17490", "ssGSEA_combined", "max_combined", "PCA_50"]
 ARCHS = ["ResidualMLP", "Linear"]
@@ -80,7 +82,7 @@ for _, row in aggregated_hps.iterrows():
     if row["arch"] != "Linear":
         all_hps[key]["dropout_rate"] = row["dropout_rate"]
 
-out_path = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results/all_aggregated_hps.json"
+out_path = str(REPO_ROOT / "hp_results" / "all_aggregated_hps.json")
 with open(out_path, "w") as f:
     json.dump(all_hps, f, indent=2)
 

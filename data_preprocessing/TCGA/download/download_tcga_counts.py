@@ -6,7 +6,7 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing as mp
 
-outdir = "/data/rbg/users/ashyamal/data/new_TCGA_RNAseq_STAR_counts/"
+outdir = os.environ.get("TCGA_COUNTS_OUTPUT_DIR", "/data/rbg/users/ashyamal/data/new_TCGA_RNAseq_STAR_counts/")
 os.makedirs(outdir, exist_ok=True)
 
 # TCGA project list (33 projects)

@@ -79,3 +79,7 @@ old_*
 /splits/CALGB/
 hp_results_ICI/*_split*.json
 hp_results/UCE_runs/
+
+# Local helper environments (e.g. UCE_EXTRA_PYTHONPATH)
+.envs/
+model_outputs

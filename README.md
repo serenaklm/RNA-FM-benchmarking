@@ -103,7 +103,7 @@ RNA-FM-benchmarking/
 │   ├── TCGA/ Hartwig/ CPTAC/ TARGET_AML/   # Per-cohort preprocessing notebooks + embedding assembly
 │   ├── immunotherapy_cohorts/          # ICI cohort processing (GEO + EGA) and embedding assembly
 │   ├── get_FM_embeddings/              # FM embedding extraction (BulkRNABert, BulkFormer, COMPASS,
-│   │                                   #   scGPT, STATE, UCE; CancerFoundation via its own repo)
+│   │                                   #   scGPT, STATE, UCE, CancerFoundation)
 │   ├── compute_PCA.py                  # PCA projections
 │   ├── get_ssGSEA_scores.py            # ssGSEA gene-set scores
 │   ├── get_genes_sets.py, dict_to_gmt.py
@@ -141,7 +141,7 @@ Not included in the repository: `data/` (raw and processed data), `model_outputs
 The core benchmarking environment:
 
 ```bash
-conda env create -f env.yml        # or: conda create -n rna_modeling python=3.10 && pip install -r requirements.txt
+conda env create -f env.yml        # or: conda create -n rna_modeling python=3.12 && pip install -r requirements.txt
 conda activate rna_modeling
 ```
 
@@ -205,7 +205,7 @@ Run the notebook in each `data_preprocessing/<COHORT>/` folder (`process_tcga.ip
 ### 2. Extract FM embeddings
 
 ```bash
-bash scripts/embeddings/run_all_embeddings.sh --dataset TCGA --gpu 0      # all FMs + ssGSEA
+bash scripts/embeddings/run_all_embeddings.sh --dataset TCGA --gpu 0      # all FMs except BulkRNABert, + ssGSEA and PCA
 
 # or individually:
 bash scripts/embeddings/run_BulkRNABert.sh      --dataset TCGA --gpu 0
@@ -223,7 +223,7 @@ bash scripts/embeddings/run_UCE.sh              --dataset TCGA --gpu 0
 bash scripts/embeddings/run_ssGSEA.sh --dataset TCGA       # gene-set scores
 
 python -m data_preprocessing.TCGA.get_TCGA_embeddings       # one .pkl per cohort with all embeddings
-python -m data_preprocessing.Hartwig.get_Hartwig_embeddings
+python -m data_preprocessing.Hartwig.get_Hartwig_embeddings --data_key Hartwig
 python -m data_preprocessing.CPTAC.get_CPTAC_embeddings
 python -m data_preprocessing.TARGET_AML.get_TARGET_AML_embeddings
 ```
@@ -233,7 +233,7 @@ The assembled files go to `data/RNA_embeddings/<COHORT>_processed*.pkl`. HVG sel
 ### 4. Splits
 
 ```bash
-python -m data_preprocessing.get_data_splits
+python -m data_preprocessing.get_data_splits --data_set TCGA    # also CPTAC, Hartwig, TARGET_AML
 ```
 
 This creates five patient-level 70/15/15 splits per cohort, stratified by cancer type (TCGA), organ (CPTAC), or cancer type × response (Hartwig). The exact splits used in the paper are in `splits/`.
@@ -292,6 +292,20 @@ bash scripts/run_eval_all_datasets.sh      # test C-index → model_outputs/<DAT
 ```
 
 Architecture and loss are chosen per embedding on mean validation C-index, as is the best variant within each baseline family. We report mean test C-index over 5 splits × 2 seeds.
+
+Both scoring scripts (`test/eval_all_RNA_models.py`, `val/compute_val_cindex.py`) can restrict scoring to a common set of patients, so every representation is compared on the same people. The models are not retrained:
+
+```bash
+# Only patients that COMPASS runs use (CPTAC and Hartwig samples without a TCGA cancer-type mapping are dropped)
+python -m test.eval_all_RNA_models --dataset CPTAC --task survival --compass_subset   # -> all_metrics_compass_subset.csv
+python -m val.compute_val_cindex   --dataset CPTAC --compass_subset                   # -> val_metrics_compass_subset.csv
+
+# TARGET-AML: one sample per person, and no val/test person who also appears in train
+# (the same person can appear as TARGET-20-X and TARGET-21-X)
+python -m data_preprocessing.TARGET_AML.make_clean_eval_ids                           # -> splits/TARGET_AML/clean_eval_ids.json
+python -m test.eval_all_RNA_models --dataset TARGET_AML --task survival --eval_ids_file splits/TARGET_AML/clean_eval_ids.json   # -> all_metrics_clean.csv
+python -m val.compute_val_cindex   --dataset TARGET_AML --eval_ids_file splits/TARGET_AML/clean_eval_ids.json                   # -> val_metrics_clean.csv
+```
 
 ### 8. Analyze
 
@@ -433,7 +447,7 @@ Settings are in `configs/finetune.yaml`.
 - *ICI:* binary cross-entropy with a positive-class weight of 3.05 (pooled non-responder/responder ratio).
 - An elastic-net penalty (L1 + squared L2 on linear-layer weights), scaled by the tuned penalty weight, is added to every loss.
 
-**Training:** batch size 128, 4 gradient-accumulation steps (effective batch size 512), AdamW, up to 500 epochs, early stopping patience 50, gradient clipping 1.5, seeds 37 and 42. Runs are logged to Weights & Biases.
+**Training:** batch size 128, 4 gradient-accumulation steps (effective batch size 512), AdamW, up to 500 epochs, early stopping patience 50, gradient clipping 1.5, seeds 37 and 42. Weights & Biases logging is optional (`USE_WANDB=1` in `scripts/train_RNA_models.sh`).
 
 **Statistics:** one-sided sign-flip permutation test (FM vs. best baseline) on per-split C-indices averaged over seeds. With 5 splits, the minimum possible p-value is 1/32 ≈ 0.031.
 

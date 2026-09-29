@@ -8,12 +8,13 @@ import torch
 torch.set_float32_matmul_precision("high")
 
 import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.loggers import CSVLogger, WandbLogger
 from pytorch_lightning.strategies import DDPStrategy
 from pytorch_lightning.utilities.rank_zero import rank_zero_only
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+from pytorch_lightning.trainer.states import TrainerStatus
 
-from pytorch_modules.utils.utils import load_config, write_json, pickle_data
+from pytorch_modules.utils.utils import load_config, write_json, pickle_data, checkpoint_every_n_train_steps
 
 from pytorch_modules.data.data import (
     TCGADataModule,
@@ -250,7 +251,7 @@ def main(args):
         monitor=monitor,
         dirpath=results_dir,
         filename="{epoch:03d}-{val_loss:.5f}",
-        every_n_train_steps=config["trainer"]["log_every_n_steps"],
+        every_n_train_steps=checkpoint_every_n_train_steps(config, dataset_name),
         save_top_k=1,
         mode="min",
     )
@@ -266,15 +267,17 @@ def main(args):
     # -----------------------
     # Logger
     # -----------------------
-    wandb_logger = WandbLogger(
-        save_dir=results_dir,
-        project=f"{dataset_name}_{task}_FM_benchmarking{args.wandb_project_suffix}",
-        entity=args.user,
-        log_model=False,
-        name=expt_name,
-    )
-
-    write_config(wandb_logger, config)
+    if args.no_wandb:
+        logger = CSVLogger(save_dir=results_dir, name="", version="")
+    else:
+        logger = WandbLogger(
+            save_dir=results_dir,
+            project=f"{dataset_name}_{task}_FM_benchmarking{args.wandb_project_suffix}",
+            entity=args.user,
+            log_model=False,
+            name=expt_name,
+        )
+        write_config(logger, config)
     write_config_local(config, os.path.join(results_dir, "config.json"))
 
     # -----------------------
@@ -283,7 +286,7 @@ def main(args):
     trainer = pl.Trainer(
         default_root_dir=results_dir,
         strategy=strategy,
-        logger=wandb_logger,
+        logger=logger,
         callbacks=[checkpoint_callback, earlystop_callback],
         **config["trainer"],
     )
@@ -292,6 +295,11 @@ def main(args):
     # Train
     trainer.fit(model_module, datamodule=data_module)
 
+    # Marks the run as finished; runs without it were interrupted (skipped by eval, redone by the launcher).
+    # Lightning catches Ctrl-C and returns from fit() normally, so check the final status.
+    if trainer.state.status == TrainerStatus.FINISHED and trainer.global_rank == 0:
+        open(os.path.join(results_dir, "done"), "w").close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -299,8 +307,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--user",
         type=str,
-        default="ashyamal-mit",
-        help="The wandb user ID",
+        default=None,
+        help="The wandb entity (default: your wandb default entity)",
     )
     parser.add_argument(
         "--config_path",
@@ -361,6 +369,11 @@ if __name__ == "__main__":
         required=True,
         default="Not provided",
         help="Path to JSON file containing tuned HPs",
+    )
+    parser.add_argument(
+        "--no_wandb",
+        action="store_true",
+        help="Log to a local CSV in the run folder instead of wandb.",
     )
     parser.add_argument(
         "--wandb_project_suffix",

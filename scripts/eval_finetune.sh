@@ -23,24 +23,24 @@ ENDPOINT="${ENDPOINT:-PFS}"
 GPU="${GPU:-5}"
 
 EVAL_SCRIPT="test.eval_finetune"
-BASE_DIR="/data/rbg/users/ashyamal/RNA-FM-benchmarking"
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # ---- select python binary for this FM ----
 case "$FM_NAME" in
   BulkFormer)
-    PYTHON="/data/rbg/users/ashyamal/miniconda3/envs/bulkformer/bin/python"
+    PYTHON="${PYTHON:-$(conda run -n bulkformer which python)}"
     ;;
   CancerFoundation)
-    PYTHON="/data/rbg/users/ashyamal/miniconda3/envs/cancerfoundation/bin/python"
+    PYTHON="${PYTHON:-$(conda run -n cancerfoundation which python)}"
     ;;
   scGPT)
-    PYTHON="/data/rbg/users/ashyamal/miniconda3/envs/scgpt_env/bin/python"
+    PYTHON="${PYTHON:-$(conda run -n scgpt_env which python)}"
     ;;
   BulkRNABert|COMPASS)
-    PYTHON="/data/rbg/users/ashyamal/miniconda3/envs/rna_modeling/bin/python"
+    PYTHON="${PYTHON:-$(conda run -n rna_modeling which python)}"
     ;;
   STATE)
-    PYTHON="/data/rbg/users/ashyamal/miniconda3/envs/state/bin/python"
+    PYTHON="${PYTHON:-$(conda run -n state which python)}"
     ;;
   *)
     echo "Unknown FM_NAME: $FM_NAME"

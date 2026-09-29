@@ -7,6 +7,8 @@ import argparse
 import numpy as np
 from collections import Counter
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 SEED_IDX = {0: 17,
             1: 37,
             2: 68,
@@ -298,7 +300,7 @@ def split_Hartwig(
     val_ratio=0.15,
     test_ratio=0.15,
     stratify_key="cancer_type",
-    sample_to_patient_path="/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/sample_to_patient_dict.pkl",
+    sample_to_patient_path=str(REPO_ROOT / "data" / "Hartwig" / "sample_to_patient_mapping.pkl"),
     forbidden_patient_ids=None,
 ):
     data = load_pickle(data_path)
@@ -409,14 +411,14 @@ if __name__ == "__main__":
     parser.add_argument("--n_splits", type=int, default=5)
     args = parser.parse_args()
 
-    splits_output_folder = Path("../splits")
+    splits_output_folder = REPO_ROOT / "splits"
     splits_output_folder.mkdir(exist_ok=True, parents=True)
 
     suffix = ""
     if args.data_set == "TCGA":
         suffix = "_cleaned"
     
-    data_path = f"../data/RNA_embeddings/{args.data_set}_processed{suffix}.pkl"
+    data_path = str(REPO_ROOT / "data" / "RNA_embeddings" / f"{args.data_set}_processed{suffix}.pkl")
     
     print(f"Loading data from: {data_path}")
     

@@ -24,7 +24,7 @@ import pandas as pd
 from tqdm import tqdm
 
 # BulkFormer data files (gene list)
-BULKFORMER_DIR = "/data/rbg/users/ashyamal/BulkFormer/BulkFormer"
+BULKFORMER_DIR = os.environ.get("BULKFORMER_DIR", "/data/rbg/users/ashyamal/BulkFormer/BulkFormer")
 
 # ---------------------------------------------------------------------------
 # Utility functions — copied verbatim from get_BulkFormer_embeddings.py

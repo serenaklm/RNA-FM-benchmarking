@@ -181,7 +181,7 @@ def run(args):
         import wandb
         wandb.init(
             project=args.wandb_project,
-            entity="ashyamal-mit",
+            entity=args.user,
             name=wandb_run_name,
             config={
                 "paradigm":   args.paradigm,
@@ -297,5 +297,6 @@ if __name__ == "__main__":
     p.add_argument("--verbose",       action="store_true")
     p.add_argument("--wandb",         action="store_true", help="Enable wandb logging")
     p.add_argument("--wandb_project", type=str, default="compass-ICI")
+    p.add_argument("--user",          type=str, default=None, help="wandb user/entity ID")
     args = p.parse_args()
     run(args)

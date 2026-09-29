@@ -60,3 +60,15 @@ def pickle_data(data, path):
 def write_json(data, path):
     with open(path, "w", encoding = "UTF-8") as f: 
         json.dump(data, f, indent = 4)
+
+def checkpoint_every_n_train_steps(config, dataset_name):
+    """Checkpoint cadence for ModelCheckpoint.
+
+    Default (None): the checkpoint is considered at the end of every validation epoch, so the
+    saved model is the one from the epoch with the lowest validation loss.
+    Datasets listed in config["callbacks"]["legacy_step_checkpoint_datasets"] instead check every
+    trainer.log_every_n_steps optimizer steps, which is how their reported models were trained
+    (the saved model can then be from shortly after the best validation epoch).
+    """
+    legacy = config.get("callbacks", {}).get("legacy_step_checkpoint_datasets") or []
+    return config["trainer"]["log_every_n_steps"] if dataset_name in legacy else None

@@ -58,7 +58,10 @@ TRAIN_SCRIPT="train.train_RNA_model"
 CONFIG_PATH="${CONFIG_PATH:-./configs/all_models.yaml}"
 
 # Tuned HPs path (override with env HP_PATH)
-HP_PATH="/data/rbg/users/ashyamal/RNA-FM-benchmarking/hp_results/all_aggregated_hps.json"
+HP_PATH="${HP_PATH:-./hp_results/all_aggregated_hps.json}"
+
+# Set USE_WANDB=1 to log to wandb; by default runs log to a CSV in their output folder
+USE_WANDB="${USE_WANDB:-0}"
 
 # -----------------------
 # Validate inputs
@@ -90,9 +93,9 @@ fi
 # -----------------------
 # (Task-specific; survival includes endpoint)
 if [[ "$TASK" == "survival" ]]; then
-  OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs/${DATASET}/survival/PFS"
+  OUT_BASE="./model_outputs/${DATASET}/survival/PFS"
 else
-  OUT_BASE="/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs/${DATASET}/response"
+  OUT_BASE="./model_outputs/${DATASET}/response"
 fi
 
 # -----------------------
@@ -117,7 +120,8 @@ HALLMARK_KEYS=(
   max_hallmark ssGSEA_hallmark
 )
 
-FM_BULK_KEYS=(BulkFormer BulkRNABert COMPASS)
+# Override with e.g. FM_BULK_KEYS="BulkFormer COMPASS" while an embedding is still being generated
+read -ra FM_BULK_KEYS <<< "${FM_BULK_KEYS:-BulkFormer BulkRNABert COMPASS}"
 FM_SC_KEYS=(scGPT STATE CancerFoundation UCE)
 
 PCA_KEYS=(PCA_50 PCA_100)
@@ -224,10 +228,23 @@ for KEY in "${KEYS[@]}"; do
 
       PREFIX="${MODEL_TAG}_rnaKey_${KEY}_nHVGs_${RUN_N_HVG}_seed_${SEED}_split_${SPLIT_IDX}_"
 
-      if compgen -G "${OUT_BASE}/${PREFIX}*" > /dev/null; then
+      # A run is finished once train_RNA_model.py has written "done"; interrupted runs are removed and redone
+      if compgen -G "${OUT_BASE}/${PREFIX}*/done" > /dev/null; then
         echo "SKIP (already exists): ${PREFIX}*"
         continue
       fi
+      # A folder written to in the last 30 min may still be training under another launcher: leave it alone
+      ACTIVE=""
+      for PARTIAL in "${OUT_BASE}/${PREFIX}"*; do
+        [[ -d "$PARTIAL" && -n "$(find "$PARTIAL" -mmin -30 -print -quit)" ]] && ACTIVE="$PARTIAL"
+      done
+      if [[ -n "$ACTIVE" ]]; then
+        echo "SKIP (possibly still running, modified <30 min ago): $ACTIVE"
+        continue
+      fi
+      for PARTIAL in "${OUT_BASE}/${PREFIX}"*; do
+        [[ -d "$PARTIAL" ]] && { echo "Removing interrupted run: $PARTIAL"; rm -rf "$PARTIAL"; }
+      done
 
       echo
       echo "Running: dataset=$DATASET task=$TASK experiment=$EXPERIMENT split=$SPLIT_IDX key=$KEY n_hvgs=$RUN_N_HVG seed=$SEED (GPU=$GPU_ID) model=$MODEL_TAG"
@@ -244,6 +261,10 @@ for KEY in "${KEYS[@]}"; do
         --rna_embedding_key "$KEY"
         --wandb_project_suffix "$WANDB_PROJECT_SUFFIX"
       )
+
+      if [[ "$USE_WANDB" != "1" ]]; then
+        CMD+=(--no_wandb)
+      fi
 
       if [[ "$RUN_N_HVG" != "None" ]]; then
         CMD+=(--n_HVGs "$RUN_N_HVG")

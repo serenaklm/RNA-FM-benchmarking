@@ -3,7 +3,7 @@ Generate UCE (Universal Cell Embeddings) embeddings for bulk RNA-seq samples.
 
 Each patient/sample is treated as a single "cell". This mirrors the pipeline in
 the UCE repo's eval_single_anndata.py / evaluate.py
-(/data/rbg/users/ashyamal/UCE), reusing UCE's own model, gene-embedding
+(UCE_REPO_DIR), reusing UCE's own model, gene-embedding
 loading, and cell-sentence sampling code directly. The one thing NOT reused is
 UCE's disk-memmap-backed multi-dataset Dataset/DataLoader machinery
 (MultiDatasetSentences) -- that exists to stream millions of single cells off
@@ -23,6 +23,7 @@ import pickle
 import warnings
 import argparse
 import json
+from pathlib import Path
 
 warnings.filterwarnings("ignore")
 
@@ -32,8 +33,11 @@ import torch
 from torch import nn
 from tqdm import tqdm
 
-UCE_REPO_DIR = "/data/rbg/users/ashyamal/UCE"
-UCE_DATA_DIR = "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/UCE"
+from fm_common import add_subset_args, restrict_to_samples, sample_ids_of
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+UCE_REPO_DIR = os.environ.get("UCE_REPO_DIR", "/data/rbg/users/ashyamal/UCE")
+UCE_DATA_DIR = os.environ.get("UCE_DATA_DIR", str(REPO_ROOT / "data" / "UCE"))
 UCE_MODEL_FILES_DIR = os.path.join(UCE_DATA_DIR, "model_files")
 
 # Captured before the os.chdir below, so relative CLI args (e.g. --data_dir)
@@ -180,6 +184,7 @@ if __name__ == "__main__":
              'and writes to {data_dir}/RNA/FM_embeddings/UCE/.',
     )
     parser.add_argument('--species', type=str, default='human')
+    add_subset_args(parser)
 
     # Model arguments -- default to the 33-layer model from the UCE paper
     parser.add_argument('--model_loc', type=str, default=os.path.join(UCE_MODEL_FILES_DIR, "33layer_model.torch"))
@@ -204,6 +209,10 @@ if __name__ == "__main__":
     parser.add_argument('--offset_pkl_path', type=str, default=os.path.join(UCE_MODEL_FILES_DIR, "species_offsets.pkl"))
 
     args = parser.parse_args()
+    # UCE samples genes per cell (np.random.choice, chromosome order shuffle); seed so that
+    # reruns give the same embeddings.
+    np.random.seed(0)
+    torch.manual_seed(0)
 
     # A relative --data_dir is relative to the directory the script was
     # invoked from (_INVOCATION_CWD), not the UCE_DATA_DIR we already chdir'd
@@ -216,12 +225,13 @@ if __name__ == "__main__":
         output_folder = os.path.join(args.data_dir, "RNA", "FM_embeddings", "UCE")
         counts_path = os.path.join(args.data_dir, "RNA", f"{args.data_set}_bulk_RNA_processed_log1p.h5ad")
     else:
-        output_folder = f"/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/{args.data_set}/RNA/FM_embeddings/UCE"
-        counts_path = f"/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/{args.data_set}/RNA/{args.data_set}_bulk_RNA_processed_log1p.h5ad"
+        output_folder = f"{REPO_ROOT}/data/{args.data_set}/RNA/FM_embeddings/UCE"
+        counts_path = f"{REPO_ROOT}/data/{args.data_set}/RNA/{args.data_set}_bulk_RNA_processed_log1p.h5ad"
 
     os.makedirs(output_folder, exist_ok=True)
 
     RNAseq_info = sc.read_h5ad(counts_path)
+    RNAseq_info = restrict_to_samples(RNAseq_info, args.data_set, args.sample_ids)
     print(RNAseq_info.to_df().shape)
     RNAseq_info.var_names = [gene.split('.')[0] for gene in RNAseq_info.var_names]
 
@@ -308,15 +318,7 @@ if __name__ == "__main__":
     RNAseq_uce_emb = np.vstack(all_embeds)
 
     # Choose IDs to save by
-    if args.data_set == "TARGET_AML":
-        ids = RNAseq_info.obs_names.astype(str).tolist()
-    elif args.data_set == "TCGA":
-        ids = RNAseq_info.obs['cases.submitter_id'].astype(str).tolist()
-    elif 'patient_id' in RNAseq_info.obs.columns:
-        ids = RNAseq_info.obs['patient_id'].astype(str).tolist()
-    else:
-        # ICI cohorts: obs_names are the patient/sample IDs
-        ids = RNAseq_info.obs_names.astype(str).tolist()
+    ids = sample_ids_of(RNAseq_info, args.data_set)
 
     print(f"Computing embeddings for {len(ids)} patients/samples")
     print("Sanmple IDs:", ids[:5])

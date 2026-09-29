@@ -284,14 +284,24 @@ class TCGADataModule(SplitRNAOnlySurvivalDataModule):
         )
 
 COMPASS_MAPPING_PATHS = {
-    "CPTAC":   "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CPTAC/id_to_tcga_mapping.pkl",
-    "ICGC":    "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/ICGC/id_to_tcga_mapping.pkl",
-    "Hartwig": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/id_to_tcga_mapping.pkl",
+    "CPTAC":   "./data/CPTAC/id_to_tcga_mapping.pkl",
+    "ICGC":    "./data/ICGC/id_to_tcga_mapping.pkl",
+    "Hartwig": "./data/Hartwig/id_to_tcga_mapping.pkl",
 }
 
 def _make_compass_filter(mapping_path: str):
     valid_ids = set(load_pickle(mapping_path).keys())
     return lambda pid, rec: pid in valid_ids
+
+
+def compass_eligible_ids(dataset: str, data_path: str) -> set:
+    """IDs that COMPASS runs train and evaluate on (COMPASS embedding present and, where a
+    TCGA cancer-type mapping is required, mapped). Used to score every representation on
+    the same patients."""
+    data = load_pickle(data_path)
+    mapped = set(load_pickle(COMPASS_MAPPING_PATHS[dataset]).keys()) if dataset in COMPASS_MAPPING_PATHS else None
+    return {pid for pid, rec in data.items()
+            if rec.get("COMPASS") is not None and (mapped is None or pid in mapped)}
 
 
 class CPTACDataModule(SplitRNAOnlySurvivalDataModule):

@@ -54,3 +54,7 @@ trainer:
 callbacks:
   patience: 50
   monitor: "val/loss"
+  # Checkpointing: by default the checkpoint is chosen at the end of each validation epoch (best
+  # validation loss). The reported TCGA models were trained with the earlier setting, which checked
+  # every trainer.log_every_n_steps optimizer steps; TCGA keeps that setting so its results reproduce.
+  legacy_step_checkpoint_datasets: ["TCGA"]

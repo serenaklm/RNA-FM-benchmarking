@@ -14,6 +14,8 @@ import argparse
 import json
 import sys
 
+from fm_common import add_subset_args, restrict_to_samples, sample_ids_of
+
 def pickle_data(data, path): 
 
     with open(path, "wb") as f:
@@ -34,6 +36,7 @@ if __name__ == "__main__":
         help='Override data directory. If set, reads {data_dir}/RNA/{data_set}_bulk_RNA_processed_log1p.h5ad '
              'and writes to {data_dir}/RNA/FM_embeddings/scGPT/.',
     )
+    add_subset_args(parser, hvg=True)
     args = parser.parse_args()
 
     # Set paths based on dataset
@@ -60,8 +63,15 @@ if __name__ == "__main__":
 
     N_HVG = 5000 # scGPT typically selects HVGs as a pre-processing step
 
-    sc.pp.highly_variable_genes(RNAseq_info, n_top_genes=N_HVG, flavor='seurat_v3')
-    RNAseq_hvg = RNAseq_info[:, RNAseq_info.var['highly_variable']]
+    # HVGs are selected on the whole cohort, or on --hvg_reference to keep a frozen list
+    hvg_source = RNAseq_info
+    if args.hvg_reference:
+        hvg_source = sc.read_h5ad(args.hvg_reference)
+        hvg_source.var_names = [gene.split('.')[0] for gene in hvg_source.var_names]
+        assert list(hvg_source.var_names) == list(RNAseq_info.var_names), "reference genes differ"
+    sc.pp.highly_variable_genes(hvg_source, n_top_genes=N_HVG, flavor='seurat_v3')
+    RNAseq_info = restrict_to_samples(RNAseq_info, args.data_set, args.sample_ids)
+    RNAseq_hvg = RNAseq_info[:, hvg_source.var['highly_variable'].values]
     
     expr_array = RNAseq_hvg.X
     if hasattr(expr_array, 'toarray'):
@@ -91,7 +101,11 @@ if __name__ == "__main__":
         print("Saved preprocessing stats to JSON.")
         exit(0)
 
-    # Get embeddings
+    # Get embeddings. scGPT randomly samples max_length (1,200) of each sample's expressed genes
+    # (torch.randperm in its data collator); seed so that reruns give the same embeddings.
+    import torch
+    torch.manual_seed(0)
+    np.random.seed(0)
     RNAseq_hvg_scGPT_emb = scg.tasks.embed_data(
         RNAseq_hvg,
         model_folder,
@@ -113,15 +127,7 @@ if __name__ == "__main__":
 '''
 
 # Choose IDs to save by
-if args.data_set == "TARGET_AML":
-    ids = RNAseq_info.obs_names.astype(str).tolist()
-elif args.data_set == "TCGA":
-    ids = RNAseq_info.obs['cases.submitter_id'].astype(str).tolist()
-elif 'patient_id' in RNAseq_info.obs.columns:
-    ids = RNAseq_info.obs['patient_id'].astype(str).tolist()
-else:
-    # ICI cohorts: obs_names are the patient/sample IDs
-    ids = RNAseq_info.obs_names.astype(str).tolist()
+ids = sample_ids_of(RNAseq_info, args.data_set)
 
 print(f"Computing embeddings for {len(ids)} patients/samples")
 print("Sanmple IDs:", ids[:5])

@@ -245,7 +245,7 @@ def main(args):
             import wandb
             wandb_run = wandb.init(
                 project="ICI-HP-tuning",
-                entity="ashyamal-mit",
+                entity=args.user,
                 name=run_label,
                 config={
                     "rna_embedding_key": eff_key,
@@ -310,5 +310,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed",      type=int, default=37)
     parser.add_argument("--no_wandb",  action="store_true",
                         help="Disable WandB logging (useful for quick local tests).")
+    parser.add_argument("--user",      type=str, default=None,
+                        help="WandB user/entity ID (default: your WandB default entity).")
     args = parser.parse_args()
     main(args)

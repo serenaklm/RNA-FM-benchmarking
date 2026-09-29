@@ -2,11 +2,15 @@
 print("Importing...")
 
 import argparse
+import os
 import anndata
 import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Dict, Optional, Any
+
+REPO_ROOT = Path(__file__).resolve().parents[2]  # .../RNA-FM-benchmarking
+RAW_DATASETS_DIR = os.environ.get("RAW_DATASETS_DIR", "/data/rbg/shared/datasets")
 
 # Import from data_preprocessing package
 from ..preprocess_utils import (
@@ -177,7 +181,7 @@ def preprocess_hartwig(
         print("\nSkipping foundation model embeddings (create_FM_embeddings=False)")
         
     # Load PCA embeddings (always)
-    pca_root = Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/PCA") # expects PCA_50/ and PCA_100/ subfolders
+    pca_root = REPO_ROOT / "data" / "Hartwig" / "PCA" # expects PCA_50/ and PCA_100/ subfolders
     print("\nLoading PCA embeddings...")
     all_pca = load_pca_embeddings(pca_root, sample_ids, dims=[50, 100])
     print(f"   PCA_50:  {len(all_pca.get('PCA_50', {}))} embeddings")
@@ -301,7 +305,6 @@ if __name__ == "__main__":
     data_key = args.data_key
     CREATE_FM_EMBEDDINGS = True # Set this
 
-    REPO_ROOT = Path(__file__).resolve().parents[2]  # .../RNA-FM-benchmarking
     print(f"Repository root: {REPO_ROOT}")
 
     data_folder = REPO_ROOT / "data"
@@ -324,7 +327,7 @@ if __name__ == "__main__":
 
     # Can be subsetted if only looking at 500 patients later
     labels_path = hartwig_folder / "clinical_labels.csv"
-    metadata_path = Path("/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/metadata.tsv")
+    metadata_path = Path(RAW_DATASETS_DIR) / "Hartwig" / "isofox_tpm_update_4" / "metadata.tsv"
 
     # Gene sets folder
     gene_sets_folder = data_folder / "gene_sets" / "processed"

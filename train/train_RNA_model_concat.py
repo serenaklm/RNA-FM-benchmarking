@@ -3,6 +3,7 @@ import yaml
 import argparse
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import torch
@@ -17,14 +18,16 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset, DataLoader
 
-from pytorch_modules.utils.utils import load_config, load_pickle, write_json
+from pytorch_modules.utils.utils import load_config, load_pickle, write_json, checkpoint_every_n_train_steps
 from pytorch_modules.models.survival_models import RNA_SurvivalModel
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 # COMPASS requires filtering to patients with a TCGA ID mapping
 COMPASS_MAPPING_PATHS = {
-    "CPTAC":   "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/CPTAC/id_to_tcga_mapping.pkl",
-    "Hartwig": "/data/rbg/users/ashyamal/RNA-FM-benchmarking/data/Hartwig/id_to_tcga_mapping.pkl",
+    "CPTAC":   str(REPO_ROOT / "data" / "CPTAC" / "id_to_tcga_mapping.pkl"),
+    "Hartwig": str(REPO_ROOT / "data" / "Hartwig" / "id_to_tcga_mapping.pkl"),
 }
 
 
@@ -309,7 +312,7 @@ def main(args):
         monitor=monitor,
         dirpath=results_dir,
         filename="{epoch:03d}-{val_loss:.5f}",
-        every_n_train_steps=config["trainer"]["log_every_n_steps"],
+        every_n_train_steps=checkpoint_every_n_train_steps(config, dataset_name),
         save_top_k=1,
         mode="min",
     )
@@ -347,7 +350,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--user", type=str, default="ashyamal-mit",
+    parser.add_argument("--user", type=str, default=None,
                         help="wandb user ID")
     parser.add_argument("--config_path", required=True, type=str,
                         help="Config YAML path")

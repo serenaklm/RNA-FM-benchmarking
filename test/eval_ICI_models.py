@@ -61,7 +61,8 @@ RUN_RE = re.compile(
     r"_seed_(?P<seed>\d+)_split_(?P<split>\d+)_"
 )
 
-MODEL_OUTPUTS_ROOT = Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs")
+REPO_ROOT = Path(__file__).resolve().parents[1]
+MODEL_OUTPUTS_ROOT = REPO_ROOT / "model_outputs"
 
 
 # ── Metric helpers ────────────────────────────────────────────────────────────

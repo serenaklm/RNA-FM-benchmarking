@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-os.environ["HF_HOME"] = "/data/rbg/users/ashyamal/huggingface_cache"
+os.environ.setdefault("HF_HOME", "/data/rbg/users/ashyamal/huggingface_cache")
 
 from transformers import AutoConfig, AutoTokenizer
 

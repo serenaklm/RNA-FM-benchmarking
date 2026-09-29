@@ -32,7 +32,7 @@ import numpy as np
 import scanpy as sc
 from tqdm import tqdm
 
-CF_DIR = "/data/rbg/users/ashyamal/CancerFoundation"
+CF_DIR = os.environ.get("CANCERFOUNDATION_DIR", "/data/rbg/users/ashyamal/CancerFoundation")
 sys.path.insert(0, CF_DIR)
 
 from model.vocab import GeneVocab

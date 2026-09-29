@@ -23,7 +23,7 @@
 # =============================================================================
 set -euo pipefail
 
-source /data/rbg/users/ashyamal/miniconda3/etc/profile.d/conda.sh
+source "$(conda info --base)/etc/profile.d/conda.sh"
 
 COHORT=""
 GPU=""

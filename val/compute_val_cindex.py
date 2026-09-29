@@ -32,6 +32,7 @@ from pytorch_modules.data.data import (
     HartwigDataModule,
     ICGCDataModule,
     TARGET_AMLDataModule,
+    compass_eligible_ids,
 )
 from pytorch_modules.models.survival_models import RNA_SurvivalModel
 
@@ -65,6 +66,9 @@ def load_done_keys(out_csv: Path):
     if not out_csv.exists():
         return set(), None
     df = pd.read_csv(out_csv)
+    # Rows that failed to score are dropped (and rewritten) so they are retried
+    if "error" in df.columns:
+        df = df[df["error"].isna() | (df["error"].astype(str) == "")].reset_index(drop=True)
     needed = {"arch", "loss", "RNA_key", "nHVGs", "seed", "split"}
     if not needed.issubset(df.columns):
         return set(), df
@@ -72,7 +76,7 @@ def load_done_keys(out_csv: Path):
         df["arch"].astype(str),
         df["loss"].astype(str),
         df["RNA_key"].astype(str),
-        df["nHVGs"].apply(lambda x: None if pd.isna(x) else int(x)),
+        [None if pd.isna(x) else int(x) for x in df["nHVGs"]],  # list, not .apply: pandas would turn None into NaN
         df["seed"].astype(int),
         df["split"].astype(int),
     ))
@@ -92,7 +96,7 @@ def safe_cindex(event_bool, time, risk):
         return float("nan")
 
 
-def eval_val_cindex(model_folder: Path, dataset: str, use_gpu: bool) -> float:
+def eval_val_cindex(model_folder: Path, dataset: str, use_gpu: bool, keep_ids=None) -> float:
     """Load checkpoint, run inference on val split, return overall C-index."""
     config_path = model_folder / "config.json"
     if not config_path.exists():
@@ -133,21 +137,51 @@ def eval_val_cindex(model_folder: Path, dataset: str, use_gpu: bool) -> float:
 
     risk_list, time_list, event_list = [], [], []
     for batch in pred_batches:
-        _, risk, time, event, *_ = batch
-        risk_list.extend(list(risk))
-        time_list.extend(list(time))
-        event_list.extend(list(event))
+        ids, risk, time, event, *_ = batch
+        for pid, r, t, e in zip(ids, risk, time, event):
+            if keep_ids is None or pid in keep_ids:
+                risk_list.append(r)
+                time_list.append(t)
+                event_list.append(e)
 
     return safe_cindex(event_list, time_list, risk_list)
 
 
+
+def eval_subset_suffix(args) -> str:
+    return ("_compass_subset" if args.compass_subset else "") + ("_clean" if args.eval_ids_file else "")
+
+
+def resolve_keep_ids(folder: Path, dataset: str, args, cache: dict):
+    """Samples to score for this run (None = all). --compass_subset keeps patients COMPASS runs use;
+    --eval_ids_file keeps the per-split 'val' IDs listed in the file. Both flags intersect."""
+    if not (args.compass_subset or args.eval_ids_file):
+        return None
+    data_cfg = load_json(folder / "config.json")["data"]
+    keep = None
+    if args.compass_subset:
+        if data_cfg["data_path"] not in cache:
+            cache[data_cfg["data_path"]] = compass_eligible_ids(dataset, data_cfg["data_path"])
+        keep = cache[data_cfg["data_path"]]
+    if args.eval_ids_file:
+        if "eval_ids" not in cache:
+            cache["eval_ids"] = load_json(args.eval_ids_file)
+        listed = set(cache["eval_ids"][str(data_cfg["split_idx"])]["val"])
+        keep = listed if keep is None else keep & listed
+    return keep
+
 def main(args):
     dataset    = args.dataset
-    base       = Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs") / dataset / "survival" / "PFS"
+    base       = Path("./model_outputs") / dataset / "survival" / "PFS"
     results_dir = Path(args.results_dir) if args.results_dir else base
-    out_csv     = Path(args.out_csv)     if args.out_csv     else (base / "val_metrics.csv")
+    default_csv = f"val_metrics{eval_subset_suffix(args)}.csv"
+    out_csv     = Path(args.out_csv)     if args.out_csv     else (base / default_csv)
 
     folders = sorted([p for p in results_dir.iterdir() if p.is_dir()], key=lambda p: p.name)
+    unfinished = [p.name for p in folders if not (p / "done").exists()]
+    if unfinished and not args.include_unfinished:
+        print(f"Skipping {len(unfinished)} unfinished runs (no 'done' marker), e.g. {unfinished[:3]}")
+        folders = [p for p in folders if (p / "done").exists()]
     print(f"Dataset={dataset} | Found {len(folders)} subfolders in {results_dir}")
 
     done_keys, existing_df = load_done_keys(out_csv)
@@ -155,6 +189,7 @@ def main(args):
 
     new_rows = []
     skipped  = 0
+    keep_ids_cache = {}
 
     for i, folder in tqdm(enumerate(folders, 1), total=len(folders)):
         meta = parse_run_name(folder.name)
@@ -178,7 +213,8 @@ def main(args):
         }
 
         try:
-            val_c = eval_val_cindex(folder, dataset=dataset, use_gpu=True)
+            keep_ids = resolve_keep_ids(folder, dataset, args, keep_ids_cache)
+            val_c = eval_val_cindex(folder, dataset=dataset, use_gpu=True, keep_ids=keep_ids)
             if val_c is None:
                 if args.verbose:
                     print(f"SKIP (no config.json): {folder.name}")
@@ -207,5 +243,11 @@ if __name__ == "__main__":
     p.add_argument("--results_dir", default=None,  help="Folder containing run subfolders (default: model_outputs/{dataset}/survival/PFS)")
     p.add_argument("--out_csv",     default=None,  help="Output CSV path (default: results_dir/val_metrics.csv)")
     p.add_argument("--verbose",     action="store_true")
+    p.add_argument("--compass_subset", action="store_true",
+                   help="Score only patients COMPASS runs use, so every representation is compared on the same validation patients. Default output: val_metrics_compass_subset.csv")
+    p.add_argument("--eval_ids_file", default=None,
+                   help="JSON {split_idx: {'val': [...], 'test': [...]}} of samples to score (e.g. splits/TARGET_AML/clean_eval_ids.json). Default output gets a '_clean' suffix")
+    p.add_argument("--include_unfinished", action="store_true",
+                   help="Also score run folders without a 'done' marker (runs trained before markers were written).")
     args = p.parse_args()
     main(args)

@@ -5,9 +5,11 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import argparse
+
+from fm_common import add_subset_args, restrict_to_samples, sample_ids_of
 import json
 
-os.environ["HF_HOME"] = "/data/rbg/users/ashyamal/huggingface_cache"
+os.environ.setdefault("HF_HOME", "/data/rbg/users/ashyamal/huggingface_cache")
 
 import torch
 from transformers import AutoConfig, AutoModel, AutoTokenizer
@@ -32,6 +34,7 @@ if __name__ == "__main__":
              'and writes to {data_dir}/RNA/FM_embeddings/BulkRNABert/.',
     )
 
+    add_subset_args(parser)
     args = parser.parse_args()
 
     # All log1p transformed
@@ -53,6 +56,7 @@ if __name__ == "__main__":
     # Load in the data 
     genes = [g.replace("\n", "").strip() for g in open(bulkbertgenes_path)]
     RNAseq_info = anndata.read_h5ad(RNA_counts_path)
+    RNAseq_info = restrict_to_samples(RNAseq_info, args.data_set, args.sample_ids)
     gencode = pd.read_csv(genecode_path)
     gene_symbol, gene_id = gencode["gene_name"].values.tolist(), gencode["gene_id"].values.tolist()
 
@@ -71,15 +75,7 @@ if __name__ == "__main__":
     print(f"There are {len(patient_id)} patients", "df is of shape", RNA.shape)
     '''
     
-    if args.data_set == "TARGET_AML":
-        ids = RNAseq_info.obs_names.astype(str).tolist()
-    elif args.data_set == "TCGA":
-        ids = RNAseq_info.obs.loc[:, 'cases.submitter_id'].astype(str).tolist()
-    elif 'patient_id' in RNAseq_info.obs.columns:
-        ids = RNAseq_info.obs.loc[:, 'patient_id'].astype(str).tolist()
-    else:
-        # ICI cohorts: obs_names are the patient/sample IDs
-        ids = RNAseq_info.obs_names.astype(str).tolist()
+    ids = sample_ids_of(RNAseq_info, args.data_set)
         
     print(f"Computing embeddings for {len(ids)} patients/samples")
     print("Sample IDs:", ids[:5])
@@ -154,6 +150,10 @@ if __name__ == "__main__":
 
         current_output_path = os.path.join(output_folder, f"{id_}.pkl")
 
-        if not os.path.exists(current_output_path):
-            emb = model(gene_expression_ids[i:i+1, :].to(device))["embeddings_4"].mean(axis=1)
+        # Skip existing files to resume sharded runs, unless re-embedding listed samples
+        if args.sample_ids or not os.path.exists(current_output_path):
+            # Inference only: without no_grad, activations over the ~19k-gene sequence are kept
+            # for backprop (60-97 GB per process). Embedding values are unchanged.
+            with torch.no_grad():
+                emb = model(gene_expression_ids[i:i+1, :].to(device))["embeddings_4"].mean(axis=1)
             pickle_data(emb, current_output_path)

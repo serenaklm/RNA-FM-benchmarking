@@ -41,6 +41,7 @@ from pytorch_modules.data.data import (
     HartwigResponseDataModule,
     ICGCDataModule,
     TARGET_AMLDataModule,
+    compass_eligible_ids,
 )
 from pytorch_modules.models.survival_models import RNA_SurvivalModel, RNA_ResponseModel
 
@@ -120,6 +121,9 @@ def load_done_keys(out_csv: Path):
         return set(), None
 
     df = pd.read_csv(out_csv)
+    # Rows that failed to score are dropped (and rewritten) so they are retried
+    if "error" in df.columns:
+        df = df[df["error"].isna() | (df["error"].astype(str) == "")].reset_index(drop=True)
 
     # We include task in the key if present, to avoid mixing survival/response.
     base_needed = {"arch", "loss", "RNA_key", "nHVGs", "seed", "split"}
@@ -136,7 +140,7 @@ def load_done_keys(out_csv: Path):
                 df["arch"].astype(str),
                 df["loss"].astype(str),
                 df["RNA_key"].apply(canon_rna_key),
-                df["nHVGs"].apply(lambda x: None if pd.isna(x) else int(x)),
+                [None if pd.isna(x) else int(x) for x in df["nHVGs"]],  # list, not .apply: pandas would turn None into NaN
                 df["seed"].astype(int),
                 df["split"].astype(int),
             )
@@ -147,7 +151,7 @@ def load_done_keys(out_csv: Path):
                 df["arch"].astype(str),
                 df["loss"].astype(str),
                 df["RNA_key"].apply(canon_rna_key),
-                df["nHVGs"].apply(lambda x: None if pd.isna(x) else int(x)),
+                [None if pd.isna(x) else int(x) for x in df["nHVGs"]],  # list, not .apply: pandas would turn None into NaN
                 df["seed"].astype(int),
                 df["split"].astype(int),
             )
@@ -240,7 +244,8 @@ def eval_one_folder(
     min_n: int,
     min_events: int,
     use_gpu: bool,
-    threshold: float = 0.5
+    threshold: float = 0.5,
+    keep_ids=None,
 ):
     config_path = model_folder / "config.json"
     if not config_path.exists():
@@ -295,7 +300,11 @@ def eval_one_folder(
     results = {}
 
     if task == "survival":
-        _, risk, time, event, organ, cancer_type = _consolidate_survival(pred_batches)
+        ids, risk, time, event, organ, cancer_type = _consolidate_survival(pred_batches)
+        if keep_ids is not None:
+            keep = [i for i, pid in enumerate(ids) if pid in keep_ids]
+            risk, time, event = [risk[i] for i in keep], [time[i] for i in keep], [event[i] for i in keep]
+            organ, cancer_type = [organ[i] for i in keep], [cancer_type[i] for i in keep]
 
         event_bool = np.asarray(event, dtype=bool)
         risk = np.asarray(risk, dtype=float)
@@ -343,17 +352,41 @@ def eval_one_folder(
 
     return results
 
+
+def eval_subset_suffix(args) -> str:
+    return ("_compass_subset" if args.compass_subset else "") + ("_clean" if args.eval_ids_file else "")
+
+
+def resolve_keep_ids(folder: Path, dataset: str, args, cache: dict):
+    """Samples to score for this run (None = all). --compass_subset keeps patients COMPASS runs use;
+    --eval_ids_file keeps the per-split 'test' IDs listed in the file. Both flags intersect."""
+    if not (args.compass_subset or args.eval_ids_file):
+        return None
+    data_cfg = load_json(folder / "config.json")["data"]
+    keep = None
+    if args.compass_subset:
+        if data_cfg["data_path"] not in cache:
+            cache[data_cfg["data_path"]] = compass_eligible_ids(dataset, data_cfg["data_path"])
+        keep = cache[data_cfg["data_path"]]
+    if args.eval_ids_file:
+        if "eval_ids" not in cache:
+            cache["eval_ids"] = load_json(args.eval_ids_file)
+        listed = set(cache["eval_ids"][str(data_cfg["split_idx"])]["test"])
+        keep = listed if keep is None else keep & listed
+    return keep
+
 def main(args):
     dataset = args.dataset
     task = args.task
 
-    base_root = Path("/data/rbg/users/ashyamal/RNA-FM-benchmarking/model_outputs") / dataset
+    base_root = Path("./model_outputs") / dataset
 
     if task == "survival":
         endpoint = args.endpoint
         base = base_root / "survival" / endpoint
         results_dir = Path(args.results_dir) if args.results_dir is not None else base
-        out_csv = Path(args.out_csv) if args.out_csv is not None else (base / "all_metrics.csv")
+        default_csv = f"all_metrics{eval_subset_suffix(args)}.csv"
+        out_csv = Path(args.out_csv) if args.out_csv is not None else (base / default_csv)
         print(f"Dataset={dataset} task={task} endpoint={endpoint}")
     else:
         base = base_root / "response"
@@ -362,6 +395,12 @@ def main(args):
         print(f"Dataset={dataset} task={task} metrics=AUROC + macro-F1 (threshold={args.threshold})")
 
     folders = sorted([p for p in results_dir.iterdir() if p.is_dir()], key=lambda p: p.name)
+    unfinished = [p.name for p in folders if not (p / "done").exists()]
+    if unfinished and not args.include_unfinished:
+        print(f"Skipping {len(unfinished)} unfinished runs (no 'done' marker), e.g. {unfinished[:3]}")
+        folders = [p for p in folders if (p / "done").exists()]
+
+    keep_ids_cache = {}
     print(f"Found {len(folders)} subfolders in {results_dir}")
 
     done_keys, existing_df = load_done_keys(out_csv)
@@ -404,6 +443,7 @@ def main(args):
             continue
 
         try:
+            keep_ids = resolve_keep_ids(folder, dataset, args, keep_ids_cache)
             res = eval_one_folder(
                 folder,
                 dataset=dataset,
@@ -411,7 +451,8 @@ def main(args):
                 min_n=args.min_n,
                 min_events=args.min_events,
                 use_gpu=True,
-                threshold=args.threshold
+                threshold=args.threshold,
+                keep_ids=keep_ids,
             )
         except Exception as e:
             row = {
@@ -493,6 +534,14 @@ if __name__ == "__main__":
     p.add_argument("--min_events", type=int, default=0, help="Only used for survival per-organ filtering.")
     p.add_argument("--verbose", action="store_true")
     p.add_argument("--threshold", type=float, default=0.5, help="Threshold for response macro-F1.")
+    p.add_argument("--compass_subset", action="store_true",
+                   help="Survival only: score only patients COMPASS runs use, so every representation is compared on the same test patients. Default output: all_metrics_compass_subset.csv")
+    p.add_argument("--eval_ids_file", default=None,
+                   help="JSON {split_idx: {'val': [...], 'test': [...]}} of samples to score (e.g. splits/TARGET_AML/clean_eval_ids.json). Default output gets a '_clean' suffix")
+    p.add_argument("--include_unfinished", action="store_true",
+                   help="Also score run folders without a 'done' marker (runs trained before markers were written).")
 
     args = p.parse_args()
+    if args.task != "survival" and (args.compass_subset or args.eval_ids_file):
+        p.error("--compass_subset and --eval_ids_file are only supported with --task survival")
     main(args)

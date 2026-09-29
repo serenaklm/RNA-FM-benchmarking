@@ -19,6 +19,7 @@ import yaml
 import argparse
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -33,8 +34,11 @@ from pytorch_lightning.utilities.rank_zero import rank_zero_only
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from torch.utils.data import Dataset, DataLoader
 
-from pytorch_modules.utils.utils import load_config, load_pickle, write_json
+from pytorch_modules.utils.utils import load_config, load_pickle, write_json, checkpoint_every_n_train_steps
 from pytorch_modules.models.survival_models import RNA_SurvivalModel
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAW_DATASETS_DIR = os.environ.get("RAW_DATASETS_DIR", "/data/rbg/shared/datasets")
 
 
 # ---------------------------------------------------------------------------
@@ -125,8 +129,8 @@ FEATURE_SPECS = {
 # Paths to clinical TSVs (absolute; TCGA/TARGET_AML use base-relative paths)
 CLINICAL_PATHS = {
     "TCGA":       "{base}/data/TCGA/clinical/clinical.tsv",
-    "CPTAC":      "/data/rbg/shared/datasets/CPTAC/clinical/clinical.tsv",
-    "Hartwig":    "/data/rbg/shared/datasets/Hartwig/isofox_tpm_update_4/metadata.tsv",
+    "CPTAC":      f"{RAW_DATASETS_DIR}/CPTAC/clinical/clinical.tsv",
+    "Hartwig":    f"{RAW_DATASETS_DIR}/Hartwig/isofox_tpm_update_4/metadata.tsv",
     "TARGET_AML": "{base}/data/TARGET_AML/clinical/clinical.tsv",
 }
 CLINICAL_ID_COLS = {
@@ -565,7 +569,7 @@ def main(args):
         monitor=monitor,
         dirpath=results_dir,
         filename="{epoch:03d}-{val_loss:.5f}",
-        every_n_train_steps=config["trainer"]["log_every_n_steps"],
+        every_n_train_steps=checkpoint_every_n_train_steps(config, dataset_name),
         save_top_k=1,
         mode="min",
     )
@@ -603,7 +607,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--user",         type=str, default="ashyamal-mit")
+    parser.add_argument("--user",         type=str, default=None)
     parser.add_argument("--config_path",  type=str, required=True)
     parser.add_argument("--dataset",      type=str, required=True,
                         choices=["TCGA", "CPTAC", "Hartwig", "TARGET_AML"])
@@ -617,7 +621,7 @@ if __name__ == "__main__":
                         choices=["Cox", "CIndex"])
     parser.add_argument("--hp_path",      type=str, required=True, default="Not provided")
     parser.add_argument("--clinical_base", type=str,
-                        default="/data/rbg/users/ashyamal/RNA-FM-benchmarking",
+                        default=str(REPO_ROOT),
                         help="Base directory for resolving relative clinical TSV paths")
     parser.add_argument("--min_cat_freq", type=int, default=10,
                         help="Min train-set frequency to keep a categorical value")

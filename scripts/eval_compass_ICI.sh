@@ -9,7 +9,7 @@
 set -e
 
 CONDA_ENV="compass"
-REPO="/data/rbg/users/ashyamal/RNA-FM-benchmarking"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="conda run -n ${CONDA_ENV} python"
 
 FILTER_PARADIGM=""
