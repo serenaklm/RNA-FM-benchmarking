@@ -275,7 +275,7 @@ def load_done_keys(out_csv: Path):
         zip(
             df["arch"].astype(str),
             df["RNA_key"].astype(str),
-            df["nHVGs"].apply(lambda x: None if pd.isna(x) else int(x)),
+            [None if pd.isna(x) else int(x) for x in df["nHVGs"]],  # list, not .apply: pandas would turn None into NaN
             df["seed"].astype(int),
             df["split"].astype(int),
         )

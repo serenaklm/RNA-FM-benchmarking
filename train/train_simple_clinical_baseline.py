@@ -205,9 +205,11 @@ def get_base_features(dataset_name, row):
     elif dataset_name == "Hartwig":
         age    = row.get("age_at_biopsy", np.nan)
         gender = row.get("gender", np.nan)
-        if pd.isnull(age) or pd.isnull(gender):
+        # Hartwig metadata is lowercase and uses the string "null" for missing values
+        gender = str(gender).strip().lower() if not pd.isnull(gender) else np.nan
+        if pd.isnull(age) or gender not in ("male", "female"):
             return None, False
-        return np.array([float(age), 1.0 if gender == "MALE" else 0.0]), True
+        return np.array([float(age), 1.0 if gender == "male" else 0.0]), True
 
     elif dataset_name == "TARGET_AML":
         age    = row.get("demographic.age_at_index", np.nan)
@@ -383,18 +385,19 @@ def run_dataset(dataset_name, covariate_mode, n_splits, alpha,
             else:
                 s2p = None
 
-            raw_train = deduplicate_by_patient(split["train"], s2p)
-            raw_test  = deduplicate_by_patient(split["test"],  s2p)
+            # Filter to samples valid for ALL modes first, then keep one sample per patient.
+            # Deduplicating first would drop patients whose first-listed sample is no longer
+            # in the data (e.g. TARGET-AML recurrent/normal samples removed after the splits were made).
+            train_ids = deduplicate_by_patient(
+                get_valid_ids(dataset_name, patient_data, clinical_dedup, split["train"]), s2p)
+            test_ids  = deduplicate_by_patient(
+                get_valid_ids(dataset_name, patient_data, clinical_dedup, split["test"]), s2p)
 
             def patient_ids(ids): return [s2p.get(s, s) if s2p else s for s in ids]
-            assert len(set(patient_ids(raw_train))) == len(raw_train), \
+            assert len(set(patient_ids(train_ids))) == len(train_ids), \
                 f"[{dataset_name}] Split {i}: duplicate patient IDs in train"
-            assert len(set(patient_ids(raw_test))) == len(raw_test), \
+            assert len(set(patient_ids(test_ids))) == len(test_ids), \
                 f"[{dataset_name}] Split {i}: duplicate patient IDs in test"
-
-            # Filter to patients valid for ALL modes
-            train_ids = get_valid_ids(dataset_name, patient_data, clinical_dedup, raw_train)
-            test_ids  = get_valid_ids(dataset_name, patient_data, clinical_dedup, raw_test)
             precomputed_valid[i] = (train_ids, test_ids)
         else:
             train_ids, test_ids = precomputed_valid[i]
